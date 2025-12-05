@@ -1,6 +1,6 @@
 # Design Documents
 
-Technical design documents for open source contributions and feature proposals.
+My technical design proposals for open source projects. These are personal contributions submitted to various open source communities for review and feedback.
 
 ## Documents
 
