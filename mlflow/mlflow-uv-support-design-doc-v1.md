@@ -329,8 +329,8 @@ mlflow.set_tag("mlflow.requirements.uv_version", uv_version)  # if UV used
 
 | UV Version | Supported | Notes |
 |------------|-----------|-------|
-| < 0.5.0 | ❌ | Missing required `--no-emit-project` flag |
-| 0.5.0+ | ✅ | Full support |
+| < 0.5.0 | No | Missing required `--no-emit-project` flag |
+| 0.5.0+ | Yes | Full support |
 
 ### Testing
 
@@ -458,10 +458,10 @@ UV supports workspaces (multiple packages in monorepo). Phase 2 should handle:
 
 | Platform | Support | Notes |
 |----------|---------|-------|
-| Open-source MLflow | ✓ | S3, GCS, local, HDFS |
-| Databricks Workspace Registry | ✓ | No changes needed |
-| Databricks UC Registry | ✓ | No changes needed |
-| Any Spark cluster | ✓ | Via existing mechanisms |
+| Open-source MLflow | Yes | S3, GCS, local, HDFS |
+| Databricks Workspace Registry | Yes | No changes needed |
+| Databricks UC Registry | Yes | No changes needed |
+| Any Spark cluster | Yes | Via existing mechanisms |
 
 **Key point:** Phase 1 only changes how `requirements.txt` is generated. No changes to artifact storage, model loading, or serving.
 
