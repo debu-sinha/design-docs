@@ -94,22 +94,22 @@ flowchart TB
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| UV Project Detection | ✅ | Check for `uv.lock` + `pyproject.toml` in CWD |
-| Dependency Export | ✅ | `uv export --no-dev --no-hashes --frozen --no-header --no-emit-project` |
-| PEP 508 Marker Filtering | ✅ | Filter requirements by Python version/platform |
-| UV Artifact Logging | ✅ | Log `uv.lock`, `pyproject.toml`, `.python-version` |
-| Monorepo Support | ✅ | `uv_lock` parameter for explicit lock file path |
-| Disable via Env Var | ✅ | `MLFLOW_LOG_UV_FILES=false` |
-| Graceful Fallback | ✅ | Falls back to pip inference on any UV failure |
+| UV Project Detection | Done | Check for `uv.lock` + `pyproject.toml` in CWD |
+| Dependency Export | Done | `uv export --no-dev --no-hashes --frozen --no-header --no-emit-project` |
+| PEP 508 Marker Filtering | Done | Filter requirements by Python version/platform |
+| UV Artifact Logging | Done | Log `uv.lock`, `pyproject.toml`, `.python-version` |
+| Monorepo Support | Done | `uv_lock` parameter for explicit lock file path |
+| Disable via Env Var | Done | `MLFLOW_LOG_UV_FILES=false` |
+| Graceful Fallback | Done | Falls back to pip inference on any UV failure |
 
 ### Phase 2 - IMPLEMENTED
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| Dependency Groups | ✅ | `groups`, `only_groups`, `extras` parameters |
-| Env Var Configuration | ✅ | `MLFLOW_UV_GROUPS`, `MLFLOW_UV_ONLY_GROUPS`, `MLFLOW_UV_EXTRAS` |
-| UV Sync Functions | ✅ | `setup_uv_sync_environment()`, `run_uv_sync()` |
-| Private Index Extraction | ✅ | Utility function (not auto-integrated) |
+| Dependency Groups | Done | `groups`, `only_groups`, `extras` parameters |
+| Env Var Configuration | Done | `MLFLOW_UV_GROUPS`, `MLFLOW_UV_ONLY_GROUPS`, `MLFLOW_UV_EXTRAS` |
+| UV Sync Functions | Done | `setup_uv_sync_environment()`, `run_uv_sync()` |
+| Private Index Extraction | Done | Utility function (not auto-integrated) |
 
 ### NOT Implemented (Design Decisions)
 
@@ -441,29 +441,29 @@ model/
 
 | Option | Chosen | Rationale |
 |--------|--------|-----------|
-| CWD-only detection | ✅ | Deterministic, predictable, no surprises |
-| Parent directory search | ❌ | May find wrong uv.lock in monorepos |
+| CWD-only detection | Yes | Deterministic, predictable, no surprises |
+| Parent directory search | No | May find wrong uv.lock in monorepos |
 
 ### Decision 2: Environment variable vs API parameter for disabling
 
 | Option | Chosen | Rationale |
 |--------|--------|-----------|
-| `MLFLOW_LOG_UV_FILES` env var | ✅ | No code changes needed, CI/CD friendly |
-| `log_uv_files=False` parameter | ❌ | Requires API changes across all flavors |
+| `MLFLOW_LOG_UV_FILES` env var | Yes | No code changes needed, CI/CD friendly |
+| `log_uv_files=False` parameter | No | Requires API changes across all flavors |
 
 ### Decision 3: Auto-inject private index URLs
 
 | Option | Chosen | Rationale |
 |--------|--------|-----------|
-| Extract as utility only | ✅ | Safe, no risk of wrong URLs |
-| Auto-prepend to requirements.txt | ❌ | Error-prone, env-specific URLs |
+| Extract as utility only | Yes | Safe, no risk of wrong URLs |
+| Auto-prepend to requirements.txt | No | Error-prone, env-specific URLs |
 
 ### Decision 4: TOML parsing for uv.lock
 
 | Option | Chosen | Rationale |
 |--------|--------|-----------|
-| Regex-based extraction | ✅ | No additional dependency |
-| tomllib/tomli | ❌ | Adds dependency, overkill for simple extraction |
+| Regex-based extraction | Yes | No additional dependency |
+| tomllib/tomli | No | Adds dependency, overkill for simple extraction |
 
 ---
 
