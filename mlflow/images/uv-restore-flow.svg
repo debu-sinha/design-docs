@@ -1,37 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="608" viewBox="-4 -20 800 608">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="656" viewBox="-4 -20 800 656">
 <defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
 <text x="160" y="28" font-size="28" fill="#228be6">Environment Restoration Flow</text>
-<rect x="272" y="56" width="256" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
-<text x="400" y="84" font-size="16" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">load_model()</text>
-<path d="M 400 112 L 400 160" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<polygon points="400,168 544,216 400,264 256,216" stroke="#343a40" fill="#fab005" stroke-width="1" />
-<text x="400" y="216" font-size="14" fill="#343a40" text-anchor="middle" dominant-baseline="central">UV artifacts present?</text>
-<path d="M 256 216 L 120 296" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<text x="152" y="258" font-size="14" fill="#fa5252">No</text>
-<path d="M 544 216 L 664 296" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<text x="600" y="258" font-size="14" fill="#40c057">Yes</text>
-<rect x="16" y="304" width="216" height="136" rx="8" stroke="#c92a2a" fill="#e03131" stroke-width="1" />
-<text x="24" y="319" font-size="11" fill="#ff8787">Conda Path</text>
-<rect x="32" y="336" width="184" height="40" rx="8" stroke="#f8f9fa" fill="#fa5252" stroke-width="1" />
-<text x="124" y="356" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">conda env create</text>
-<rect x="32" y="388" width="184" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
-<text x="124" y="404" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">conda.yaml</text>
-<rect x="256" y="304" width="216" height="136" rx="8" stroke="#c92a2a" fill="#e03131" stroke-width="1" />
-<text x="264" y="319" font-size="11" fill="#ff8787">Pip Path</text>
-<rect x="272" y="336" width="184" height="40" rx="8" stroke="#f8f9fa" fill="#fa5252" stroke-width="1" />
-<text x="364" y="356" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">pip install -r</text>
-<rect x="272" y="388" width="184" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
-<text x="364" y="404" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">requirements.txt</text>
-<rect x="496" y="304" width="280" height="136" rx="8" stroke="#0ca678" fill="#087f5b" stroke-width="1" />
-<text x="504" y="319" font-size="11" fill="#40c057">UV Path (Fast)</text>
-<rect x="512" y="336" width="248" height="40" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
-<text x="636" y="356" font-size="14" fill="#212529" text-anchor="middle" dominant-baseline="central">uv sync --frozen</text>
-<rect x="512" y="388" width="248" height="40" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
-<text x="636" y="408" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">uv.lock + pyproject.toml</text>
-<text x="568" y="460" font-size="12" fill="#40c057">~10x faster than pip</text>
-<path d="M 124 440 L 340 504" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<path d="M 364 440 L 340 504" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<path d="M 636 440 L 340 504" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
-<rect x="240" y="512" width="320" height="56" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
-<text x="400" y="540" font-size="16" fill="#212529" text-anchor="middle" dominant-baseline="central">Restored Python Environment</text>
+<rect x="272" y="48" width="256" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="400" y="76" font-size="16" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">load_model()</text>
+<path d="M 400 104 L 400 152" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<polygon points="400,160 544,208 400,256 256,208" stroke="#343a40" fill="#fab005" stroke-width="1" />
+<text x="400" y="208" font-size="14" fill="#343a40" text-anchor="middle" dominant-baseline="central">has_uv_lock_artifact()?</text>
+<text x="152" y="256" font-size="14" fill="#fa5252">No</text>
+<path d="M 256 208 L 120 288" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="556" y="256" font-size="14" fill="#40c057">Yes</text>
+<path d="M 544 208 L 664 288" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="16" y="296" width="216" height="136" rx="8" stroke="#c92a2a" fill="#e03131" stroke-width="1" />
+<text x="24" y="314" font-size="11" fill="#ff8787">Conda Path</text>
+<rect x="32" y="328" width="184" height="40" rx="8" stroke="#f8f9fa" fill="#fa5252" stroke-width="1" />
+<text x="124" y="348" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">conda env create</text>
+<rect x="32" y="380" width="184" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
+<text x="124" y="396" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">conda.yaml</text>
+<rect x="256" y="296" width="216" height="136" rx="8" stroke="#c92a2a" fill="#e03131" stroke-width="1" />
+<text x="264" y="314" font-size="11" fill="#ff8787">Pip Path</text>
+<rect x="272" y="328" width="184" height="40" rx="8" stroke="#f8f9fa" fill="#fa5252" stroke-width="1" />
+<text x="364" y="348" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">pip install -r</text>
+<rect x="272" y="380" width="184" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
+<text x="364" y="396" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">requirements.txt</text>
+<rect x="496" y="296" width="280" height="200" rx="8" stroke="#0ca678" fill="#087f5b" stroke-width="1" />
+<text x="504" y="314" font-size="11" fill="#40c057">UV Path (Fast)</text>
+<rect x="512" y="328" width="248" height="40" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
+<text x="636" y="348" font-size="13" fill="#212529" text-anchor="middle" dominant-baseline="central">setup_uv_sync_environment()</text>
+<path d="M 636 368 L 636 392" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="512" y="400" width="248" height="40" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
+<text x="636" y="420" font-size="14" fill="#212529" text-anchor="middle" dominant-baseline="central">run_uv_sync()</text>
+<rect x="512" y="452" width="248" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
+<text x="636" y="468" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">uv.lock + pyproject.toml</text>
+<text x="568" y="522" font-size="12" fill="#40c057">~10x faster than pip</text>
+<path d="M 124 432 L 340 552" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<path d="M 364 432 L 340 552" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<path d="M 636 496 L 340 552" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="240" y="560" width="320" height="56" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
+<text x="400" y="588" font-size="16" fill="#212529" text-anchor="middle" dominant-baseline="central">Restored Python Environment</text>
 </svg>
