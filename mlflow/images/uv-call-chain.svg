@@ -13,7 +13,7 @@
 <text x="400" y="280" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">_save_model_with_*(uv_project_path, uv_groups, uv_extras)</text>
 <path d="M 400 304 L 400 360" stroke="#fab005" fill="none" stroke-width="2" marker-end="url(#arrow-fab005)" />
 <text x="416" y="333" font-size="11" fill="#fab005">passes uv_groups, uv_extras</text>
-<text x="416" y="348" font-size="10" fill="#868e96">uv_project_path used for detect + copy</text>
+<text x="416" y="348" font-size="10" fill="#868e96">uv_project_path used for copy_uv_project_files only</text>
 <rect x="168" y="368" width="464" height="48" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
 <text x="400" y="392" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">infer_pip_requirements(uv_groups, uv_extras)</text>
 <path d="M 400 416 L 400 464" stroke="#fab005" fill="none" stroke-width="2" marker-end="url(#arrow-fab005)" />

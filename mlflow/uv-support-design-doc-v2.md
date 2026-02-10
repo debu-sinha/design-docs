@@ -80,11 +80,13 @@ The diagram below shows the complete model logging flow with UV integration.
 When `save_model()` or `log_model()` is called:
 
 1. Check `MLFLOW_UV_AUTO_DETECT` (default: `true`). If disabled, skip UV detection entirely.
-2. Call `detect_uv_project()` to look for `uv.lock` + `pyproject.toml` in CWD (or `uv_project_path` if provided).
+2. Call `detect_uv_project()` to look for `uv.lock` + `pyproject.toml` in CWD (always CWD, not `uv_project_path`).
 3. If found and UV >= 0.5.0 is installed, run `uv export` with the specified groups/extras.
 4. Filter the output by PEP 508 environment markers for the current platform.
-5. Copy UV artifacts (`uv.lock`, `pyproject.toml`, `.python-version`) unless `MLFLOW_LOG_UV_FILES=false`.
+5. Separately, call `copy_uv_project_files()` with `source_dir = uv_project_path or cwd` to log UV artifacts (`uv.lock`, `pyproject.toml`, `.python-version`) unless `MLFLOW_LOG_UV_FILES=false`.
 6. If any step fails, fall back gracefully to standard pip-based inference (capture imported packages).
+
+Note: Steps 2-4 (requirement inference) and step 5 (artifact copying) are independent operations. The inference always detects from CWD, while the copy uses `uv_project_path` if provided. This means in monorepo setups, `uv_project_path` controls which project files are copied, but the inference still runs against CWD.
 
 ### Parameter Threading Call Chain
 
@@ -95,11 +97,12 @@ The `uv_project_path`, `uv_groups`, and `uv_extras` parameters flow through the 
 ```
 log_model(uv_project_path, uv_groups, uv_extras)
   -> save_model(uv_project_path, uv_groups, uv_extras)
-    -> _save_model_with_loader_module_and_data_path(uv_groups, uv_extras)
-       OR _save_model_with_class_artifacts_params(uv_groups, uv_extras)
-      -> infer_pip_requirements(uv_groups, uv_extras)
+    -> _save_model_with_loader_module_and_data_path(uv_project_path, uv_groups, uv_extras)
+       OR _save_model_with_class_artifacts_params(uv_project_path, uv_groups, uv_extras)
+      -> infer_pip_requirements(uv_groups, uv_extras)       [uv_project_path NOT passed]
         -> export_uv_requirements(groups=uv_groups, extras=uv_extras)
-          -> subprocess: uv export --group X --extra Y
+          -> subprocess: uv export --group X --extra Y --frozen --no-dev
+      -> copy_uv_project_files(source_dir=uv_project_path or cwd)   [separate step]
 ```
 
 ### Environment Restoration Flow
