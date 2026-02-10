@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="918" viewBox="30 -20 920 918">
+<defs><marker id="arrow-adb5bd" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#adb5bd" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="250" y="24" font-size="24" fill="#4c6ef5">UV Model Logging Flow</text>
+<rect x="280" y="50" width="260" height="48" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
+<text x="310" y="78" font-size="16" fill="#ffffff">save_model / log_model</text>
+<path d="M 410 98 L 410 138" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<polygon points="410,148 520,183 410,218 300,183" stroke="#e8590c" fill="#fcc419" stroke-width="1" />
+<text x="330" y="182" font-size="14" fill="#1e1e1e">UV_AUTO_DETECT?</text>
+<path d="M 300 183 L 160 243" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<text x="180" y="223" font-size="13" fill="#ff6b6b">No</text>
+<rect x="50" y="253" width="220" height="44" rx="8" stroke="#495057" fill="#868e96" stroke-width="1" />
+<text x="80" y="279" font-size="14" fill="#ffffff">pip-based inference</text>
+<path d="M 520 183 L 640 243" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<text x="570" y="223" font-size="13" fill="#51cf66">Yes</text>
+<rect x="530" y="253" width="220" height="44" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
+<text x="558" y="279" font-size="14" fill="#ffffff">detect_uv_project(cwd)</text>
+<path d="M 640 297 L 640 337" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<polygon points="640,347 750,382 640,417 530,382" stroke="#e8590c" fill="#fcc419" stroke-width="1" />
+<text x="555" y="375" font-size="13" fill="#1e1e1e">uv.lock + pyproject
+    found?</text>
+<path d="M 750 382 L 820 432" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<text x="770" y="408" font-size="13" fill="#ff6b6b">No</text>
+<rect x="730" y="442" width="200" height="44" rx="8" stroke="#495057" fill="#868e96" stroke-width="1" />
+<text x="756" y="468" font-size="14" fill="#ffffff">pip-based inference</text>
+<path d="M 530 382 L 450 432" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<text x="465" y="413" font-size="13" fill="#51cf66">Yes</text>
+<rect x="310" y="442" width="260" height="44" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
+<text x="322" y="467" font-size="13" fill="#ffffff">export_uv_requirements(
+  groups, extras)</text>
+<path d="M 440 486 L 440 521" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<rect x="290" y="531" width="300" height="44" rx="8" stroke="#1c3faa" fill="#364fc7" stroke-width="1" />
+<text x="302" y="555" font-size="12" fill="#ffffff">uv export --no-dev --frozen
+--no-hashes --no-emit-project</text>
+<path d="M 440 575 L 440 610" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<rect x="320" y="620" width="240" height="44" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
+<text x="345" y="646" font-size="14" fill="#ffffff">Filter PEP 508 markers</text>
+<path d="M 390 664 L 310 714" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<path d="M 490 664 L 570 714" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<rect x="200" y="724" width="220" height="44" rx="8" stroke="#2b8a3e" fill="#51cf66" stroke-width="1" />
+<text x="237" y="750" font-size="14" fill="#1e1e1e">requirements.txt</text>
+<rect x="470" y="724" width="220" height="44" rx="8" stroke="#2b8a3e" fill="#51cf66" stroke-width="1" />
+<text x="482" y="742" font-size="12" fill="#1e1e1e">UV artifacts: uv.lock,
+pyproject.toml, .python-ver</text>
+<path d="M 310 768 L 410 818" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<path d="M 580 768 L 480 818" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<rect x="320" y="828" width="250" height="50" rx="8" stroke="#0ca678" fill="#20c997" stroke-width="1" />
+<text x="375" y="859" font-size="16" fill="#1e1e1e">Model Artifacts</text>
+</svg>

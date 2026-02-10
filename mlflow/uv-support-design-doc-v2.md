@@ -75,7 +75,7 @@ mlflow.sklearn.log_model(model, "model", pip_requirements=requirements)
 
 The diagram below shows the complete model logging flow with UV integration.
 
-> Open [images/uv-logging-flow.excalidraw](images/uv-logging-flow.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram (dark mode compatible, transparent background).
+![UV Model Logging Flow](images/uv-logging-flow.svg)
 
 When `save_model()` or `log_model()` is called:
 
@@ -90,7 +90,7 @@ When `save_model()` or `log_model()` is called:
 
 The `uv_project_path`, `uv_groups`, and `uv_extras` parameters flow through the full call chain from user API to subprocess invocation.
 
-> Open [images/uv-call-chain.excalidraw](images/uv-call-chain.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram.
+![Parameter Threading Call Chain](images/uv-call-chain.svg)
 
 ```
 log_model(uv_project_path, uv_groups, uv_extras)
@@ -106,7 +106,7 @@ log_model(uv_project_path, uv_groups, uv_extras)
 
 When loading a model that was logged from a UV project, the restoration path depends on whether `uv.lock` is in the artifacts and whether `env_manager="uv"` is specified.
 
-> Open [images/uv-restore-flow.excalidraw](images/uv-restore-flow.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram.
+![Environment Restoration Flow](images/uv-restore-flow.svg)
 
 ---
 
