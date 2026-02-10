@@ -1,32 +1,36 @@
-# MLflow UV Package Manager Support
+# MLflow UV Package Manager Support - Design Document v2
 
-| | |
-|----------------------|--------------------------------------------------|
-| **Author(s)** | Debu Sinha ([@debu-sinha](https://github.com/debu-sinha)) |
-| **Organization** | MLflow Community |
-| **Status** | IMPLEMENTED |
-| **GitHub Issue** | [#12478](https://github.com/mlflow/mlflow/issues/12478) |
-| **Pull Request** | [#20344](https://github.com/mlflow/mlflow/pull/20344) |
+|                    |                                                           |
+| ------------------ | --------------------------------------------------------- |
+| **Author(s)**      | Debu Sinha ([@debu-sinha](https://github.com/debu-sinha)) |
+| **Organization**   | MLflow Community                                          |
+| **Status**         | IMPLEMENTED                                               |
+| **GitHub Issue**   | [#12478](https://github.com/mlflow/mlflow/issues/12478)   |
+| **Pull Request**   | [#20344](https://github.com/mlflow/mlflow/pull/20344)     |
 
 **Change Log:**
-- 2025-12-05: Initial design version
-- 2025-01-26: Updated to reflect actual Phase 1 + Phase 2 implementation
-- 2025-01-30: Renamed `uv_lock` parameter to `uv_project_path`; Added `MLFLOW_UV_AUTO_DETECT` env var; Added `_create_virtualenv` integration details
+
+- 2025-12-05: Initial design version (v1)
+- 2025-01-26: Updated to reflect Phase 1 + Phase 2 implementation
+- 2025-01-30: Renamed `uv_lock` to `uv_project_path`; added `MLFLOW_UV_AUTO_DETECT`; added `_create_virtualenv` integration
+- 2026-02-10: Full rewrite with Excalidraw diagrams, `uv_groups`/`uv_extras` API params, complete implementation state (v2 final)
 
 ---
 
 ## Executive Summary
 
-This document describes the implementation of native UV package manager support in MLflow for automatic dependency inference during model logging. The implementation includes both Phase 1 (MVP) and Phase 2 features.
+This document describes the design and implementation of native UV package manager support in MLflow for automatic dependency inference during model logging. UV is 8-10x faster than pip (cold cache) and 80-115x faster (warm cache), with growing adoption in the ML/data science community.
 
 **What's Implemented:**
-- Automatic UV project detection (`uv.lock` + `pyproject.toml`)
-- Dependency export via `uv export`
-- UV artifacts logging (`uv.lock`, `pyproject.toml`, `.python-version`)
-- Explicit `uv_project_path` parameter for monorepo support
-- Dependency groups support (`groups`, `only_groups`, `extras`)
-- Environment variable configuration
-- UV-based environment restoration functions (integrated into `_create_virtualenv`)
+
+- Automatic UV project detection (`uv.lock` + `pyproject.toml` in CWD)
+- Dependency export via `uv export` with PEP 508 marker filtering
+- UV artifact logging (`uv.lock`, `pyproject.toml`, `.python-version`)
+- `uv_project_path` parameter for monorepo support
+- `uv_groups` and `uv_extras` parameters on `save_model()` / `log_model()` for selective dependency export
+- `MLFLOW_UV_AUTO_DETECT` environment variable to disable auto-detection
+- `MLFLOW_LOG_UV_FILES` environment variable to disable artifact logging
+- UV-based environment restoration functions (`setup_uv_sync_environment`, `run_uv_sync`)
 - Private index URL extraction utility
 
 ---
@@ -39,15 +43,17 @@ This document describes the implementation of native UV package manager support 
 
 > "When using the uv package manager to create virtual environments and install packages, MLflow is unable to infer requirements.txt when auto-logging a model."
 
-Users managing Python environments with UV must manually specify dependencies when logging models - defeating the purpose of MLflow's automatic dependency inference.
+Users managing Python environments with UV must manually specify dependencies when logging models -- defeating the purpose of MLflow's automatic dependency inference.
 
 **Why UV matters:**
+
 - 8-10x faster than pip (cold cache), 80-115x faster (warm cache)
 - Growing adoption in ML community (25+ upvotes, 22+ comments on issue)
 - Combines pip, virtualenv, and pyenv functionality
-- Better reproducibility via lock files
+- Better reproducibility via deterministic lock files
 
 **Current workaround (painful):**
+
 ```python
 # Users must manually export and specify dependencies
 import subprocess
@@ -65,64 +71,72 @@ mlflow.sklearn.log_model(model, "model", pip_requirements=requirements)
 
 ## Architecture Overview
 
-```mermaid
-flowchart TB
-    subgraph "Model Logging Flow"
-        A[log_model called] --> AA{MLFLOW_UV_AUTO_DETECT?}
-        AA -->|false| D[Use pip inference]
-        AA -->|true/default| B{UV project detected?}
-        B -->|Yes| C{UV available >= 0.5.0?}
-        B -->|No| D
-        C -->|Yes| E[Run uv export]
-        C -->|No| F[Log warning]
-        F --> D
-        E -->|Success| G[Parse requirements]
-        E -->|Fail| H[Log warning + fallback]
-        H --> D
-        G --> I[Filter by PEP 508 markers]
-        I --> J{MLFLOW_LOG_UV_FILES?}
-        J -->|true| K[Copy uv.lock + pyproject.toml + .python-version]
-        J -->|false| L[Skip UV file logging]
-        K --> M[Save requirements.txt]
-        L --> M
-        D --> M
-    end
+### Model Logging Flow
+
+The diagram below shows the complete model logging flow with UV integration.
+
+> Open [images/uv-logging-flow.excalidraw](images/uv-logging-flow.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram (dark mode compatible, transparent background).
+
+When `save_model()` or `log_model()` is called:
+
+1. Check `MLFLOW_UV_AUTO_DETECT` (default: `true`). If disabled, skip UV detection entirely.
+2. Call `detect_uv_project()` to look for `uv.lock` + `pyproject.toml` in CWD (or `uv_project_path` if provided).
+3. If found and UV >= 0.5.0 is installed, run `uv export` with the specified groups/extras.
+4. Filter the output by PEP 508 environment markers for the current platform.
+5. Copy UV artifacts (`uv.lock`, `pyproject.toml`, `.python-version`) unless `MLFLOW_LOG_UV_FILES=false`.
+6. If any step fails, fall back gracefully to standard pip-based inference (capture imported packages).
+
+### Parameter Threading Call Chain
+
+The `uv_project_path`, `uv_groups`, and `uv_extras` parameters flow through the full call chain from user API to subprocess invocation.
+
+> Open [images/uv-call-chain.excalidraw](images/uv-call-chain.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram.
+
 ```
+log_model(uv_project_path, uv_groups, uv_extras)
+  -> save_model(uv_project_path, uv_groups, uv_extras)
+    -> _save_model_with_loader_module_and_data_path(uv_groups, uv_extras)
+       OR _save_model_with_class_artifacts_params(uv_groups, uv_extras)
+      -> infer_pip_requirements(uv_groups, uv_extras)
+        -> export_uv_requirements(groups=uv_groups, extras=uv_extras)
+          -> subprocess: uv export --group X --extra Y
+```
+
+### Environment Restoration Flow
+
+When loading a model that was logged from a UV project, the restoration path depends on whether `uv.lock` is in the artifacts and whether `env_manager="uv"` is specified.
+
+> Open [images/uv-restore-flow.excalidraw](images/uv-restore-flow.excalidraw) in [excalidraw.com](https://excalidraw.com) to view the full diagram.
 
 ---
 
-## Phase Implementation Summary
+## Implementation Summary
 
-### Phase 1 (MVP) - IMPLEMENTED
+### Core Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| UV Project Detection | Done | Check for `uv.lock` + `pyproject.toml` in CWD |
-| Dependency Export | Done | `uv export --no-dev --no-hashes --frozen --no-header --no-emit-project` |
-| PEP 508 Marker Filtering | Done | Filter requirements by Python version/platform |
-| UV Artifact Logging | Done | Log `uv.lock`, `pyproject.toml`, `.python-version` |
-| Monorepo Support | Done | `uv_project_path` parameter for explicit project directory path |
-| Disable via Env Var | Done | `MLFLOW_LOG_UV_FILES=false` to skip file logging |
-| Disable Auto-Detect | Done | `MLFLOW_UV_AUTO_DETECT=false` to skip UV detection entirely |
-| Graceful Fallback | Done | Falls back to pip inference on any UV failure |
-
-### Phase 2 - IMPLEMENTED
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Dependency Groups | Done | `groups`, `only_groups`, `extras` parameters |
-| Env Var Configuration | Done | `MLFLOW_UV_GROUPS`, `MLFLOW_UV_ONLY_GROUPS`, `MLFLOW_UV_EXTRAS` |
-| UV Sync Functions | Done | `setup_uv_sync_environment()`, `run_uv_sync()` |
-| `_create_virtualenv` Integration | Done | UV sync integrated into virtualenv creation |
-| Private Index Extraction | Done | Utility function (not auto-integrated) |
+| Feature                      | Status | Description                                                             |
+| ---------------------------- | ------ | ----------------------------------------------------------------------- |
+| UV Project Detection         | Done   | Check for `uv.lock` + `pyproject.toml` in CWD                           |
+| Dependency Export             | Done   | `uv export --no-dev --no-hashes --frozen --no-header --no-emit-project` |
+| PEP 508 Marker Filtering     | Done   | Filter requirements by Python version/platform                          |
+| UV Artifact Logging          | Done   | Log `uv.lock`, `pyproject.toml`, `.python-version`                      |
+| `uv_project_path` parameter  | Done   | Explicit UV project path for monorepo support                           |
+| `uv_groups` parameter        | Done   | Selective dependency group export on `save_model`/`log_model`           |
+| `uv_extras` parameter        | Done   | Optional extras export on `save_model`/`log_model`                      |
+| `MLFLOW_UV_AUTO_DETECT`      | Done   | Disable UV auto-detection (default: `true`)                             |
+| `MLFLOW_LOG_UV_FILES`        | Done   | Disable UV file logging (default: `true`)                               |
+| Dependency groups (env vars) | Done   | `MLFLOW_UV_GROUPS`, `MLFLOW_UV_ONLY_GROUPS`, `MLFLOW_UV_EXTRAS`         |
+| UV Sync Functions            | Done   | `setup_uv_sync_environment()`, `run_uv_sync()`                          |
+| Private Index Extraction     | Done   | Utility function (not auto-injected into requirements.txt)              |
+| Graceful Fallback            | Done   | Falls back to pip inference on any UV failure                           |
 
 ### NOT Implemented (Design Decisions)
 
-| Feature | Reason |
-|---------|--------|
-| `log_uv_files` API parameter | Environment variable approach is less error-prone |
-| Auto-prepend index URLs | Error-prone, may inject wrong/stale URLs |
-| Parent directory search | CWD-only detection is deterministic and predictable |
+| Feature                      | Reason                                              |
+| ---------------------------- | --------------------------------------------------- |
+| `log_uv_files` API parameter | Environment variable approach is less error-prone   |
+| Auto-prepend index URLs      | Error-prone, may inject wrong/stale URLs            |
+| Parent directory search      | CWD-only detection is deterministic and predictable |
 
 ---
 
@@ -130,55 +144,36 @@ flowchart TB
 
 ## Core Module: `mlflow/utils/uv_utils.py`
 
-### UV Detection & Version Check
+### Public Functions
+
+| Function                          | Purpose                                              |
+| --------------------------------- | ---------------------------------------------------- |
+| `get_uv_version()`                | Get installed UV version as `packaging.version.Version` |
+| `is_uv_available()`               | Check UV >= 0.5.0 is installed                       |
+| `detect_uv_project(directory)`    | Find `uv.lock` + `pyproject.toml` in given dir      |
+| `export_uv_requirements(...)`     | Run `uv export` and parse output                    |
+| `get_python_version_from_uv_project(directory)` | Extract Python version from `.python-version` or `pyproject.toml` |
+| `copy_uv_project_files(dest, src)` | Copy UV artifacts to model dir                      |
+| `extract_index_urls_from_uv_lock(path)` | Extract private index URLs from `uv.lock`      |
+| `setup_uv_sync_environment(env_dir, model_path, python_version)` | Prepare for `uv sync --frozen` |
+| `run_uv_sync(project_dir)`        | Execute `uv sync` for environment restoration       |
+| `has_uv_lock_artifact(model_path)` | Check if model has `uv.lock` artifact               |
+
+### UV Detection
 
 ```python
 _MIN_UV_VERSION = Version("0.5.0")
 
-def is_uv_available() -> bool:
-    """Check if UV is installed and >= 0.5.0."""
-    version = get_uv_version()
-    return version is not None and version >= _MIN_UV_VERSION
-
 def detect_uv_project(directory: str | Path | None = None) -> dict[str, Path] | None:
     """
     Detect UV project by checking for BOTH uv.lock and pyproject.toml.
+    CWD-only detection (no parent directory search).
 
     Returns {"uv_lock": Path, "pyproject": Path} or None.
-    Note: CWD-only detection (no parent directory search).
-    """
-
-def _is_uv_auto_detect_enabled() -> bool:
-    """
-    Check if UV auto-detection is enabled.
-
-    When disabled via MLFLOW_UV_AUTO_DETECT=false, MLflow skips UV project
-    detection entirely and uses standard pip-based dependency inference.
     """
 ```
 
 ### Dependency Export
-
-```mermaid
-flowchart LR
-    A[export_uv_requirements] --> B[Build uv export command]
-    B --> C["--no-dev (default)"]
-    B --> D[--no-hashes]
-    B --> E[--frozen]
-    B --> F[--no-header]
-    B --> G[--no-emit-project]
-
-    subgraph "Phase 2 Options"
-        B --> H["--group (if groups)"]
-        B --> I["--only-group (if only_groups)"]
-        B --> J["--extra (if extras)"]
-    end
-
-    C & D & E & F & G & H & I & J --> K[Execute subprocess]
-    K --> L[Parse output]
-    L --> M[Filter by PEP 508 markers]
-    M --> N[Return requirements list]
-```
 
 ```python
 def export_uv_requirements(
@@ -186,66 +181,76 @@ def export_uv_requirements(
     no_dev: bool = True,
     no_hashes: bool = True,
     frozen: bool = True,
-    uv_project_path: str | Path | None = None,
-    groups: list[str] | None = None,        # Phase 2
-    only_groups: list[str] | None = None,   # Phase 2
-    extras: list[str] | None = None,        # Phase 2
+    groups: list[str] | None = None,
+    only_groups: list[str] | None = None,
+    extras: list[str] | None = None,
 ) -> list[str] | None:
-    """
-    Export dependencies from UV project to pip-compatible requirements.
-
-    Precedence: only_groups > groups (mutually exclusive)
-    extras is additive and can combine with either.
-    """
 ```
 
-### UV Artifact Logging
+The export function:
+1. Builds the `uv export` command with appropriate flags
+2. Handles group/extras parameters (`--group`, `--only-group`, `--extra`)
+3. Parses the output and filters by PEP 508 environment markers
+4. Deduplicates packages (UV may emit multiple entries with different markers)
+5. Returns `None` on any failure (graceful fallback)
+
+### PEP 508 Marker Evaluation
+
+The `_evaluate_marker()` function handles environment markers that UV attaches to requirements:
+
+- `python_version`, `python_full_version`
+- `platform_python_implementation`, `sys_platform`, `platform_system`, `platform_machine`, `os_name`
+- Supports `and`/`or` compound markers
+- Conservative: unknown markers default to match
+
+---
+
+## Public API Changes
+
+### `save_model()` / `log_model()` Parameters
+
+Three new parameters added to `mlflow.pyfunc.save_model()` and `mlflow.pyfunc.log_model()`:
 
 ```python
-_MLFLOW_LOG_UV_FILES_ENV = "MLFLOW_LOG_UV_FILES"
-
-def copy_uv_project_files(
-    dest_dir: str | Path,
-    source_dir: str | Path | None = None,
-    uv_project_path: str | Path | None = None,
-) -> bool:
-    """
-    Copy UV project files to model artifact directory.
-
-    Files copied:
-    - uv.lock
-    - pyproject.toml
-    - .python-version (if exists)
-
-    Can be disabled via MLFLOW_LOG_UV_FILES=false
-    """
+mlflow.pyfunc.save_model(
+    python_model=model,
+    name="model",
+    # UV-specific parameters (all optional, all experimental)
+    uv_project_path="/path/to/monorepo/package",  # Explicit UV project dir
+    uv_groups=["serving"],                          # Dependency groups to include
+    uv_extras=["gpu"],                              # Optional extras to include
+)
 ```
+
+| Parameter         | Type                       | Default | Description                                                    |
+| ----------------- | -------------------------- | ------- | -------------------------------------------------------------- |
+| `uv_project_path` | `str \| Path \| None`     | `None`  | Explicit path to UV project (for monorepos)                    |
+| `uv_groups`       | `list[str] \| None`       | `None`  | Dependency groups to include (`uv export --group`)             |
+| `uv_extras`       | `list[str] \| None`       | `None`  | Optional extras to include (`uv export --extra`)               |
+
+All three parameters are marked `@experimental` and may change in a future release without warning.
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Phase | Description |
-|----------|---------|-------|-------------|
-| `MLFLOW_UV_AUTO_DETECT` | `true` | 1 | Set to `false`/`0`/`no` to disable UV detection entirely |
-| `MLFLOW_LOG_UV_FILES` | `true` | 1 | Set to `false`/`0`/`no` to disable UV file logging |
-| `MLFLOW_UV_GROUPS` | (none) | 2 | Comma-separated dependency groups to include |
-| `MLFLOW_UV_ONLY_GROUPS` | (none) | 2 | Comma-separated groups (exclusive mode, takes precedence) |
-| `MLFLOW_UV_EXTRAS` | (none) | 2 | Comma-separated optional extras to include |
+| Variable                | Default | Description                                               |
+| ----------------------- | ------- | --------------------------------------------------------- |
+| `MLFLOW_UV_AUTO_DETECT` | `true`  | Set to `false` to disable UV project auto-detection       |
+| `MLFLOW_LOG_UV_FILES`   | `true`  | Set to `false`/`0`/`no` to disable UV file logging        |
+| `MLFLOW_UV_GROUPS`      | (none)  | Comma-separated dependency groups to include              |
+| `MLFLOW_UV_ONLY_GROUPS` | (none)  | Comma-separated groups (exclusive mode, takes precedence) |
+| `MLFLOW_UV_EXTRAS`      | (none)  | Comma-separated optional extras to include                |
 
-**Difference between `MLFLOW_UV_AUTO_DETECT` and `MLFLOW_LOG_UV_FILES`:**
-
-| Variable | UV Detection | UV Export | UV Artifacts |
-|----------|--------------|-----------|--------------|
-| `MLFLOW_UV_AUTO_DETECT=false` | Skipped | Skipped | Not logged |
-| `MLFLOW_LOG_UV_FILES=false` | Performed | Performed | Not logged |
+`MLFLOW_UV_AUTO_DETECT` is a standard MLflow `_BooleanEnvironmentVariable` defined in `mlflow/environment_variables.py`. The remaining env vars are parsed in `mlflow/utils/uv_utils.py`.
 
 **Usage Examples:**
+
 ```bash
-# Disable UV detection entirely (use pip inference)
+# Disable UV auto-detection entirely
 MLFLOW_UV_AUTO_DETECT=false python train.py
 
-# Disable UV file logging (but still use UV export for requirements)
+# Disable UV file logging (for large projects)
 MLFLOW_LOG_UV_FILES=false python train.py
 
 # Include serving group dependencies
@@ -258,65 +263,36 @@ MLFLOW_UV_ONLY_GROUPS="serving" python train.py
 MLFLOW_UV_GROUPS="serving" MLFLOW_UV_EXTRAS="gpu" python train.py
 ```
 
----
-
-## Public API Changes
-
-### New Parameter in `log_model()` / `save_model()`
-
-```python
-mlflow.pyfunc.log_model(
-    python_model=model,
-    name="model",
-    uv_project_path="/path/to/monorepo/subproject",  # Optional: explicit path for non-CWD projects
-)
-```
-
-**Note:** The parameter expects a path to the UV project directory (containing `uv.lock`, `pyproject.toml`, and optionally `.python-version`).
-
-**Note:** `log_uv_files` parameter was NOT implemented. Use `MLFLOW_LOG_UV_FILES=false` environment variable instead.
+Note: When `uv_groups` or `uv_extras` are passed as API parameters, they take precedence over the environment variables.
 
 ---
 
-## UV-Based Environment Restoration (Phase 2)
+## Integration with `infer_pip_requirements()`
 
-The UV sync functionality is integrated into `mlflow/utils/virtualenv.py::_create_virtualenv()`.
-
-```mermaid
-flowchart TB
-    A[_create_virtualenv called] --> B{has_uv_lock_artifact?}
-    B -->|Yes| C{env_manager = 'uv'?}
-    B -->|No| D[Use pip install]
-    C -->|Yes| E[setup_uv_sync_environment]
-    C -->|No| D
-    E --> F[Copy uv.lock from artifacts]
-    F --> G[Copy pyproject.toml from artifacts]
-    G --> H[Copy .python-version if exists]
-    H --> I[run_uv_sync --frozen --no-dev]
-    I -->|Success| J[Environment Ready]
-    I -->|Fail| K[Fallback to pip]
-    K --> D
-    D --> J
-```
-
-### Integration in `_create_virtualenv`
+The `infer_pip_requirements()` function in `mlflow/utils/environment.py` is the bridge between model saving and UV export:
 
 ```python
-# From mlflow/utils/virtualenv.py
-from mlflow.utils.uv_utils import has_uv_lock_artifact, run_uv_sync, setup_uv_sync_environment
-
-def _create_virtualenv(...):
-    # Try UV sync if model has uv.lock artifact and using UV env manager
-    uv_sync_succeeded = False
-    if env_manager == em.UV and has_uv_lock_artifact(local_model_path):
-        _logger.info("Found uv.lock artifact, attempting UV sync for environment restoration")
-        if setup_uv_sync_environment(env_dir, local_model_path, python_env.python):
-            uv_sync_succeeded = run_uv_sync(env_dir, capture_output=capture_output)
-
-    # Fall back to pip-based installation if UV sync was not used or failed
-    if not uv_sync_succeeded:
-        # ... existing pip install logic
+def infer_pip_requirements(
+    model_uri,
+    flavor,
+    fallback=None,
+    timeout=None,
+    extra_env_vars=None,
+    uv_groups=None,       # NEW
+    uv_extras=None,       # NEW
+):
 ```
+
+When called:
+1. Check `MLFLOW_UV_AUTO_DETECT.get()` -- if `false`, skip UV entirely
+2. Call `detect_uv_project()` -- if no UV project found, use standard inference
+3. Call `export_uv_requirements(directory, groups=uv_groups, extras=uv_extras)`
+4. If UV export returns requirements, use them directly (skip model-based inference)
+5. If UV export fails or returns `None`, fall back to standard package-capture inference
+
+---
+
+## UV-Based Environment Restoration
 
 ### Restoration Functions
 
@@ -332,12 +308,20 @@ def run_uv_sync(
     project_dir: str | Path,
     frozen: bool = True,
     no_dev: bool = True,
+    capture_output: bool = False,
 ) -> bool:
     """Execute uv sync for environment restoration."""
 
 def has_uv_lock_artifact(model_path: str | Path) -> bool:
     """Check if model has uv.lock artifact."""
 ```
+
+The restoration flow:
+1. Check if model artifacts contain `uv.lock`
+2. Copy `uv.lock` and `pyproject.toml` (or create minimal one) to environment directory
+3. Copy `.python-version` if available
+4. Run `uv sync --frozen --no-dev`
+5. Fall back to pip if any step fails
 
 ---
 
@@ -346,71 +330,111 @@ def has_uv_lock_artifact(model_path: str | Path) -> bool:
 **Problem:** `uv export` does not emit `--index-url` / `--extra-index-url`, which can cause pip-based restores to fail for private packages.
 
 **Approach (implemented):**
+
 - Do NOT auto-inject index URLs into requirements.txt (error-prone)
-- Provide utility function to extract URLs for manual use/debugging
+- Provide utility function `extract_index_urls_from_uv_lock()` for manual use/debugging
 - Log WARNING when private indexes detected
 - Recommend `env_manager="uv"` for private index scenarios
 
-```python
-def extract_index_urls_from_uv_lock(uv_lock_path: str | Path) -> list[str]:
-    """
-    Extract private registry URLs from uv.lock (utility function).
-
-    Uses regex-based extraction (no TOML library dependency).
-    Filters out PyPI URLs, returns sorted list of private indexes.
-    Logs warning about credential configuration.
-    """
-```
-
 **Why we don't auto-inject:**
+
 - Index URLs may be environment-specific (dev vs prod)
-- Credentials still required - auto-injection gives false sense of security
+- Credentials still required -- auto-injection gives false sense of security
 - Per-package index pinning (`[tool.uv.sources]`) not representable in requirements.txt
 
-**User guidance:**
-
-| Restore Method | Configuration Required |
-|----------------|----------------------|
-| `env_manager="uv"` (recommended) | Credentials via `UV_INDEX_*` env vars or `.netrc` |
-| pip-based restore | Manual config via `pip.conf`, env vars, or `.netrc` |
+| Restore Method                    | Configuration Required                              |
+| --------------------------------- | --------------------------------------------------- |
+| `env_manager="uv"` (recommended) | Credentials via `UV_INDEX_*` env vars or `.netrc`   |
+| pip-based restore                 | Manual config via `pip.conf`, env vars, or `.netrc` |
 
 ---
 
 ## Graceful Degradation
 
-| Scenario | Behavior |
-|----------|----------|
-| `MLFLOW_UV_AUTO_DETECT=false` | Skips UV detection entirely, uses pip inference |
-| UV not installed | Falls back to pip inference, logs warning |
-| UV version < 0.5.0 | Falls back to pip inference, logs warning |
-| `uv export` fails | Falls back to pip inference, logs warning |
-| No UV project detected | Uses standard pip inference (no warning) |
-| `MLFLOW_LOG_UV_FILES=false` | Skips UV file logging, logs info |
+| Scenario                      | Behavior                                  |
+| ----------------------------- | ----------------------------------------- |
+| UV not installed              | Falls back to pip inference, logs warning |
+| UV version < 0.5.0            | Falls back to pip inference, logs warning |
+| `uv export` fails             | Falls back to pip inference, logs warning |
+| No UV project detected        | Uses standard pip inference (no warning)  |
+| `MLFLOW_UV_AUTO_DETECT=false` | Skips UV detection entirely               |
+| `MLFLOW_LOG_UV_FILES=false`   | Skips UV file logging, logs info          |
+
+---
+
+## Model Artifacts Structure
+
+When a UV project is detected and logged:
+
+```
+model/
++-- MLmodel
++-- model.pkl
++-- requirements.txt    # Generated via uv export (pip-compatible)
++-- uv.lock             # Original lock file (for uv sync restore)
++-- pyproject.toml      # Project definition
++-- .python-version     # Python version (if exists)
++-- conda.yaml
+```
+
+---
+
+## Modified Files
+
+| File                               | Changes                                              |
+| ---------------------------------- | ---------------------------------------------------- |
+| `mlflow/utils/uv_utils.py`        | NEW: All UV detection, export, and sync functions    |
+| `mlflow/utils/environment.py`     | `infer_pip_requirements()`: UV detection + export    |
+| `mlflow/pyfunc/__init__.py`       | `save_model`/`log_model`: new UV params + threading  |
+| `mlflow/pyfunc/model.py`          | `_save_model_with_class_artifacts_params`: UV params |
+| `mlflow/environment_variables.py` | `MLFLOW_UV_AUTO_DETECT` boolean env var              |
+| `tests/utils/test_uv_utils.py`    | Unit tests (85 tests)                                |
+| `tests/pyfunc/test_uv_model_logging.py` | Integration tests (29 tests)                   |
 
 ---
 
 ## Test Coverage
 
-**Total: 122 tests**
+**Total: 114 tests + 56-check integration validation**
 
-### Unit Tests (`tests/utils/test_uv_utils.py`) - 93 tests
+### Unit Tests (`tests/utils/test_uv_utils.py`) - 85 tests
 
 - UV version detection and availability
 - Project detection (CWD-only)
 - Dependency export with various flags
-- PEP 508 marker evaluation
-- UV file copying
-- Environment variable parsing (`MLFLOW_UV_AUTO_DETECT`, `MLFLOW_LOG_UV_FILES`, etc.)
-- Private index extraction
+- PEP 508 marker evaluation (python_version, platform, os, compound markers)
+- UV file copying and artifact management
+- Environment variable parsing
+- Private index extraction (regex-based)
 - UV sync setup functions
 
 ### Integration Tests (`tests/pyfunc/test_uv_model_logging.py`) - 29 tests
 
 - Real UV project creation and locking
-- Real `uv export` with dependency groups
+- Real `uv export` with dependency groups and extras
 - Real `uv sync` environment setup
 - End-to-end model logging with UV
 - Environment variable behavior
+
+### Manual Integration Validation - 56 checks
+
+All 56 checks passed with real UV projects (no mocks):
+
+| Category                      | Tests | Status |
+| ----------------------------- | ----- | ------ |
+| UV availability               | 3     | PASS   |
+| detect_uv_project             | 2     | PASS   |
+| export_uv_requirements        | 9     | PASS   |
+| get_python_version            | 2     | PASS   |
+| copy_uv_project_files         | 3     | PASS   |
+| infer_pip_requirements (UV)   | 6     | PASS   |
+| MLFLOW_UV_AUTO_DETECT toggle  | 4     | PASS   |
+| save_model with UV            | 10    | PASS   |
+| save_model with uv_groups     | 4     | PASS   |
+| save_model with uv_extras     | 3     | PASS   |
+| log_model with UV + uv_groups | 3     | PASS   |
+| setup_uv_sync_environment     | 4     | PASS   |
+| save_model with auto-detect off | 3   | PASS   |
 
 ```bash
 # Run all UV tests
@@ -443,25 +467,23 @@ with mlflow.start_run():
 ```python
 mlflow.sklearn.log_model(
     model, "model",
-    uv_project_path="/path/to/monorepo/subproject"
+    uv_project_path="/path/to/monorepo/package"
 )
 ```
 
-### Disable UV Detection
+### Selective Dependency Groups (API Parameters)
 
-```bash
-# Disable UV auto-detection entirely
-MLFLOW_UV_AUTO_DETECT=false python train.py
+```python
+# Include serving group + GPU extras
+mlflow.pyfunc.log_model(
+    python_model=model,
+    name="model",
+    uv_groups=["serving"],
+    uv_extras=["gpu"],
+)
 ```
 
-### Disable UV File Logging
-
-```bash
-# Via environment variable (recommended)
-MLFLOW_LOG_UV_FILES=false python train.py
-```
-
-### Selective Dependency Groups
+### Selective Dependency Groups (Environment Variables)
 
 ```bash
 # Include only serving dependencies
@@ -471,21 +493,18 @@ MLFLOW_UV_ONLY_GROUPS="serving" python train.py
 MLFLOW_UV_GROUPS="serving" MLFLOW_UV_EXTRAS="gpu" python train.py
 ```
 
----
+### Disable UV Auto-Detection
 
-## Model Artifacts Structure
-
-When a UV project is detected and logged:
-
+```bash
+# Via environment variable
+MLFLOW_UV_AUTO_DETECT=false python train.py
 ```
-model/
-├── MLmodel
-├── model.pkl
-├── requirements.txt    # Generated via uv export
-├── uv.lock             # Original lock file (for uv sync restore)
-├── pyproject.toml      # Project definition
-├── .python-version     # Python version (if exists)
-└── conda.yaml
+
+### Disable UV File Logging
+
+```bash
+# Via environment variable (for large projects)
+MLFLOW_LOG_UV_FILES=false python train.py
 ```
 
 ---
@@ -494,38 +513,48 @@ model/
 
 ### Decision 1: CWD-only vs parent directory search
 
-| Option | Chosen | Rationale |
-|--------|--------|-----------|
-| CWD-only detection | Yes | Deterministic, predictable, no surprises |
-| Parent directory search | No | May find wrong uv.lock in monorepos |
+| Option                  | Chosen | Rationale                                |
+| ----------------------- | ------ | ---------------------------------------- |
+| CWD-only detection      | Yes    | Deterministic, predictable, no surprises |
+| Parent directory search | No     | May find wrong uv.lock in monorepos      |
 
-### Decision 2: Environment variable vs API parameter for disabling
+### Decision 2: `MLFLOW_UV_AUTO_DETECT` as standard `_BooleanEnvironmentVariable`
 
-| Option | Chosen | Rationale |
-|--------|--------|-----------|
-| `MLFLOW_LOG_UV_FILES` env var | Yes | No code changes needed, CI/CD friendly |
-| `log_uv_files=False` parameter | No | Requires API changes across all flavors |
+| Option                              | Chosen | Rationale                                     |
+| ----------------------------------- | ------ | --------------------------------------------- |
+| `_BooleanEnvironmentVariable`       | Yes    | Consistent with MLflow patterns, centralized  |
+| Custom env var parsing in uv_utils  | No     | Scattered, not discoverable                   |
 
-### Decision 3: Auto-inject private index URLs
+### Decision 3: `uv_groups`/`uv_extras` on API vs env vars only
 
-| Option | Chosen | Rationale |
-|--------|--------|-----------|
-| Extract as utility only | Yes | Safe, no risk of wrong URLs |
-| Auto-prepend to requirements.txt | No | Error-prone, env-specific URLs |
+| Option                 | Chosen | Rationale                                           |
+| ---------------------- | ------ | --------------------------------------------------- |
+| Both API + env vars    | Yes    | API params for explicit control, env vars for CI/CD |
+| Env vars only          | No     | Less discoverable, not as composable                |
+| API params only        | No     | Less convenient for automation                      |
 
-### Decision 4: TOML parsing for uv.lock
+API parameters take precedence over environment variables when both are specified.
 
-| Option | Chosen | Rationale |
-|--------|--------|-----------|
-| Regex-based extraction | Yes | No additional dependency |
-| tomllib/tomli | No | Adds dependency, overkill for simple extraction |
+### Decision 4: Environment variable vs API parameter for disabling UV file logging
 
-### Decision 5: Parameter naming for monorepo support
+| Option                         | Chosen | Rationale                               |
+| ------------------------------ | ------ | --------------------------------------- |
+| `MLFLOW_LOG_UV_FILES` env var  | Yes    | No code changes needed, CI/CD friendly  |
+| `log_uv_files=False` parameter | No     | Requires API changes across all flavors |
 
-| Option | Chosen | Rationale |
-|--------|--------|-----------|
-| `uv_project_path` | Yes | Clearer - expects directory containing all UV files |
-| `uv_lock` | No | Ambiguous - could imply just the lock file path |
+### Decision 5: Auto-inject private index URLs
+
+| Option                           | Chosen | Rationale                      |
+| -------------------------------- | ------ | ------------------------------ |
+| Extract as utility only          | Yes    | Safe, no risk of wrong URLs    |
+| Auto-prepend to requirements.txt | No     | Error-prone, env-specific URLs |
+
+### Decision 6: TOML parsing for uv.lock
+
+| Option                 | Chosen | Rationale                                       |
+| ---------------------- | ------ | ----------------------------------------------- |
+| Regex-based extraction | Yes    | No additional dependency                        |
+| tomllib/tomli          | No     | Adds dependency, overkill for simple extraction |
 
 ---
 
@@ -535,3 +564,4 @@ model/
 2. **Pull Request:** [#20344 - Add UV package manager support](https://github.com/mlflow/mlflow/pull/20344)
 3. **UV Documentation:** [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
 4. **UV Benchmarks:** [https://github.com/astral-sh/uv#benchmarks](https://github.com/astral-sh/uv#benchmarks)
+5. **PEP 508:** [https://peps.python.org/pep-0508/](https://peps.python.org/pep-0508/)
