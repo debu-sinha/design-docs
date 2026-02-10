@@ -1,44 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="780" height="580" viewBox="0 -20 780 580">
-<defs><marker id="arrow-adb5bd" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#adb5bd" /></marker><marker id="arrow-fcc419" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#fcc419" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
-<text x="150" y="22" font-size="22" fill="#4c6ef5">Parameter Threading: uv_groups / uv_extras</text>
-<rect x="20" y="50" width="740" height="110" rx="8" stroke="#364fc7" fill="#1c3faa" stroke-width="1" />
-<text x="30" y="67" font-size="12" fill="#748ffc">Public API</text>
-<rect x="40" y="80" width="310" height="60" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
-<text x="55" y="102" font-size="14" fill="#ffffff">mlflow.pyfunc.log_model(
-  uv_groups, uv_extras)</text>
-<path d="M 350 110 L 420 110" stroke="#adb5bd" fill="none" stroke-width="2" marker-end="url(#arrow-adb5bd)" />
-<rect x="430" y="80" width="310" height="60" rx="8" stroke="#364fc7" fill="#4c6ef5" stroke-width="1" />
-<text x="445" y="102" font-size="14" fill="#ffffff">mlflow.pyfunc.save_model(
-  uv_groups, uv_extras)</text>
-<path d="M 585 140 L 585 190" stroke="#fcc419" fill="none" stroke-width="2" marker-end="url(#arrow-fcc419)" />
-<text x="600" y="169" font-size="11" fill="#fcc419">passes through</text>
-<rect x="20" y="200" width="740" height="110" rx="8" stroke="#364fc7" fill="#1c3faa" stroke-width="1" />
-<text x="30" y="217" font-size="12" fill="#748ffc">Internal</text>
-<rect x="40" y="230" width="340" height="60" rx="8" stroke="#4263eb" fill="#5c7cfa" stroke-width="1" />
-<text x="48" y="251" font-size="13" fill="#ffffff">_save_model_with_loader_module(
-  uv_groups, uv_extras)</text>
-<path d="M 380 260 L 450 260" stroke="#adb5bd" fill="none" stroke-width="2" marker-end="url(#arrow-adb5bd)" />
-<rect x="460" y="230" width="290" height="60" rx="8" stroke="#4263eb" fill="#5c7cfa" stroke-width="1" />
-<text x="472" y="251" font-size="13" fill="#ffffff">infer_pip_requirements(
-  uv_groups, uv_extras)</text>
-<path d="M 605 290 L 605 340" stroke="#fcc419" fill="none" stroke-width="2" marker-end="url(#arrow-fcc419)" />
-<text x="620" y="319" font-size="11" fill="#fcc419">passes through</text>
-<rect x="20" y="350" width="740" height="110" rx="8" stroke="#364fc7" fill="#1c3faa" stroke-width="1" />
-<text x="30" y="367" font-size="12" fill="#748ffc">UV Utils</text>
-<rect x="40" y="380" width="310" height="60" rx="8" stroke="#5c7cfa" fill="#748ffc" stroke-width="1" />
-<text x="52" y="401" font-size="13" fill="#ffffff">export_uv_requirements(
-  groups=..., extras=...)</text>
-<path d="M 350 410 L 420 410" stroke="#adb5bd" fill="none" stroke-width="2" marker-end="url(#arrow-adb5bd)" />
-<rect x="430" y="380" width="320" height="60" rx="8" stroke="#1c3faa" fill="#364fc7" stroke-width="1" />
-<text x="442" y="401" font-size="13" fill="#ffffff">subprocess: uv export
-  --group G --extra E</text>
-<text x="440" y="459" font-size="11" fill="#868e96">--no-dev --frozen --no-hashes --no-emit-project</text>
-<rect x="20" y="485" width="740" height="55" rx="8" stroke="#087f5b" fill="#0ca678" stroke-width="1" />
-<text x="30" y="502" font-size="12" fill="#51cf66">Output</text>
-<rect x="40" y="505" width="310" height="28" rx="8" stroke="#2b8a3e" fill="#51cf66" stroke-width="1" />
-<text x="100" y="524" font-size="13" fill="#1e1e1e">requirements.txt (PEP 508)</text>
-<rect x="380" y="505" width="370" height="28" rx="8" stroke="#2b8a3e" fill="#51cf66" stroke-width="1" />
-<text x="395" y="523" font-size="12" fill="#1e1e1e">uv.lock + pyproject.toml + .python-version</text>
-<path d="M 440 440 L 195 500" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
-<path d="M 585 440 L 565 500" stroke="#adb5bd" fill="none" stroke-width="1" marker-end="url(#arrow-adb5bd)" />
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="608" viewBox="-4 -20 768 608">
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><marker id="arrow-fab005" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#fab005" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="88" y="24" font-size="24" fill="#228be6">Parameter Threading: uv_groups / uv_extras</text>
+<rect x="16" y="48" width="728" height="120" rx="8" stroke="#1864ab" fill="#1864ab" stroke-width="1" />
+<text x="24" y="64" font-size="12" fill="#748ffc">Public API</text>
+<rect x="32" y="80" width="336" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="200" y="108" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">log_model(uv_groups, uv_extras)</text>
+<path d="M 368 108 L 408 108" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="408" y="80" width="320" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="568" y="108" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">save_model(uv_groups, uv_extras)</text>
+<path d="M 568 136 L 568 192" stroke="#fab005" fill="none" stroke-width="2" marker-end="url(#arrow-fab005)" />
+<text x="580" y="167" font-size="11" fill="#fab005">passes through</text>
+<rect x="16" y="208" width="728" height="120" rx="8" stroke="#1864ab" fill="#1864ab" stroke-width="1" />
+<text x="24" y="224" font-size="12" fill="#748ffc">Internal</text>
+<rect x="32" y="240" width="336" height="56" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="200" y="268" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">_save_model_with_loader()</text>
+<path d="M 368 268 L 408 268" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="408" y="240" width="320" height="56" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="568" y="268" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">infer_pip_requirements()</text>
+<path d="M 568 296 L 568 352" stroke="#fab005" fill="none" stroke-width="2" marker-end="url(#arrow-fab005)" />
+<text x="580" y="327" font-size="11" fill="#fab005">passes through</text>
+<rect x="16" y="368" width="728" height="120" rx="8" stroke="#1864ab" fill="#1864ab" stroke-width="1" />
+<text x="24" y="384" font-size="12" fill="#748ffc">UV Utils</text>
+<rect x="32" y="400" width="336" height="56" rx="8" stroke="#f8f9fa" fill="#5c7cfa" stroke-width="1" />
+<text x="200" y="428" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">export_uv_requirements()</text>
+<path d="M 368 428 L 408 428" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="408" y="400" width="320" height="56" rx="8" stroke="#dee2e6" fill="#1864ab" stroke-width="1" />
+<text x="568" y="428" font-size="13" fill="#dee2e6" text-anchor="middle" dominant-baseline="central">uv export --group G --extra E</text>
+<rect x="16" y="512" width="728" height="56" rx="8" stroke="#087f5b" fill="#087f5b" stroke-width="1" />
+<text x="24" y="528" font-size="12" fill="#40c057">Output</text>
+<rect x="32" y="532" width="344" height="28" rx="8" stroke="#212529" fill="#40c057" stroke-width="1" />
+<text x="204" y="546" font-size="12" fill="#212529" text-anchor="middle" dominant-baseline="central">requirements.txt (PEP 508)</text>
+<rect x="400" y="532" width="336" height="28" rx="8" stroke="#212529" fill="#40c057" stroke-width="1" />
+<text x="568" y="546" font-size="11" fill="#212529" text-anchor="middle" dominant-baseline="central">uv.lock + pyproject.toml + .python-version</text>
 </svg>
