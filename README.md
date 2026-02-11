@@ -7,6 +7,7 @@ My technical design proposals for open source projects. These are personal contr
 | Document | Project | Status | Issue |
 |----------|---------|--------|-------|
 | [UV Package Manager Support](mlflow/mlflow-uv-support-design-doc-v1.md) | MLflow | Draft | [#12478](https://github.com/mlflow/mlflow/issues/12478) |
+| [Usage Tracker](instructor/usage-tracker-design-doc.md) | Instructor | Draft | [#613](https://github.com/jxnl/instructor/issues/613), [#267](https://github.com/jxnl/instructor/issues/267) |
 
 ## Structure
 
@@ -14,6 +15,8 @@ My technical design proposals for open source projects. These are personal contr
 design-docs/
 ├── mlflow/                    # MLflow project designs
 │   ├── images/
+│   └── *.md
+├── instructor/                # Instructor project designs
 │   └── *.md
 ├── <project>/                 # Future project designs
 │   ├── images/
