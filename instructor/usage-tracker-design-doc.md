@@ -2,7 +2,7 @@
 
 **Author:** Debu Sinha ([@debu-sinha](https://github.com/debu-sinha))
 **Status:** Draft
-**Related Issues:** [#613](https://github.com/jxnl/instructor/issues/613), [#267](https://github.com/jxnl/instructor/issues/267)
+**Related Issues:** [#2080](https://github.com/567-labs/instructor/issues/2080), [#1814](https://github.com/567-labs/instructor/issues/1814) (closed, partial)
 **Target:** `instructor` library
 
 ---
@@ -573,9 +573,8 @@ The `UsageTracker` only needs 3 of these hooks:
 
 ### B. Related Issues
 
-- **#613**: "Implement token usage tracking" -- requests built-in token tracking across calls
-- **#267**: "Session usage tracking" -- requests session-level aggregation with cost estimation
-- **#1013**: "Hooks/callbacks inside ILS" -- requests deeper hook integration (separate scope)
+- **#2080**: Feature proposal issue for this design (opened by author)
+- **#1814**: "Add usage field when receiving response from LLM" -- closed, but shows demand for usage access in structured responses
 
 ### C. Relationship to Existing `update_total_usage`
 
