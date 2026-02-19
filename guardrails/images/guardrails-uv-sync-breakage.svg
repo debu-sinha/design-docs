@@ -1,40 +1,76 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600.8" viewBox="44 -4 600 600.8">
-<defs><marker id="arrow-e03131" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#e03131" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
-<text x="64" y="40" font-size="24" fill="#1971c2">Why uv sync Breaks Guardrails</text>
-<rect x="64" y="64" width="312" height="176" rx="8" stroke="#1971c2" fill="#d0ebff" stroke-width="1" />
-<text x="72" y="83" font-size="11" fill="#1971c2">site-packages/ (after hub install)</text>
-<rect x="80" y="96" width="280" height="32" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
-<text x="220" y="112" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails-ai==0.9.0</text>
-<rect x="80" y="136" width="280" height="32" rx="8" stroke="#f8f9fa" fill="#40c057" stroke-width="1" />
-<text x="220" y="152" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails_grhub_detect_pii/</text>
-<rect x="80" y="176" width="280" height="40" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
-<text x="220" y="196" font-size="11" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">hub/__init__.py (mutated)
-from guardrails_grhub_detect_pii import DetectPII</text>
-<rect x="424" y="72" width="200" height="56" rx="8" stroke="#f8f9fa" fill="#1864ab" stroke-width="1" />
-<text x="524" y="100" font-size="16" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">uv sync</text>
-<text x="424" y="147" font-size="11" fill="#868e96">Reconciles environment
-with uv.lock contents</text>
-<path d="M 424 100 L 376 100" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-e03131)" />
-<text x="384" y="91" font-size="11" fill="#e03131">removes</text>
-<rect x="424" y="176" width="200" height="96" rx="8" stroke="#f59f00" fill="#fff9db" stroke-width="1" />
-<text x="432" y="195" font-size="11" fill="#e67700">uv.lock contains:</text>
-<text x="432" y="211" font-size="11" fill="#868e96">guardrails-ai==0.9.0
-numpy==1.26.4
-pydantic==2.10.0
-(no hub validators)</text>
-<path d="M 220 240 L 220 280" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-e03131)" />
-<rect x="64" y="288" width="312" height="176" rx="8" stroke="#e03131" fill="#ffe3e3" stroke-width="1" />
-<text x="72" y="307" font-size="11" fill="#e03131">site-packages/ (after uv sync)</text>
-<rect x="80" y="320" width="280" height="32" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
-<text x="220" y="336" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails-ai==0.9.0 (still here)</text>
-<rect x="80" y="360" width="280" height="32" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
-<text x="220" y="376" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails_grhub_detect_pii/ GONE</text>
-<rect x="80" y="400" width="280" height="40" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
-<text x="220" y="420" font-size="11" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">hub/__init__.py (STALE)
-from guardrails_grhub_detect_pii import DetectPII</text>
-<path d="M 220 464 L 220 488" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-e03131)" />
-<rect x="64" y="496" width="560" height="56" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
-<text x="344" y="524" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">import guardrails -&gt; ModuleNotFoundError: guardrails_grhub_detect_pii</text>
-<text x="64" y="572" font-size="12" fill="#e03131">FATAL: Entire guardrails package becomes unimportable.
-Even the CLI crashes -- cannot run guardrails hub install to fix it.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="620" viewBox="44 0 700 620">
+<defs>
+  <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0, 10 3.5, 0 7" fill="#e03131" />
+  </marker>
+  <style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style>
+</defs>
+
+<!-- Title -->
+<text x="64" y="32" font-size="22" fill="#1971c2" font-weight="600">Why uv sync Breaks Guardrails</text>
+
+<!-- Container 1: site-packages after hub install -->
+<rect x="64" y="56" width="376" height="200" rx="8" fill="#d0ebff" stroke="#1971c2" stroke-width="1" />
+<text x="72" y="76" font-size="11" fill="#1971c2">site-packages/ (after hub install)</text>
+
+<!-- Inner box 1a: guardrails-ai -->
+<rect x="80" y="88" width="344" height="36" rx="8" fill="#228be6" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="106" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails-ai==0.9.0</text>
+
+<!-- Inner box 1b: detect_pii package -->
+<rect x="80" y="136" width="344" height="36" rx="8" fill="#40c057" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="154" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails_grhub_detect_pii/</text>
+
+<!-- Inner box 1c: hub/__init__.py mutated -->
+<rect x="80" y="184" width="344" height="44" rx="8" fill="#3b5bdb" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="200" font-size="11" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">hub/__init__.py (mutated)</text>
+<text x="252" y="218" font-size="10" fill="#dee2e6" text-anchor="middle" dominant-baseline="central">from guardrails_grhub_detect_pii import DetectPII</text>
+
+<!-- uv sync box -->
+<rect x="464" y="72" width="176" height="48" rx="8" fill="#1864ab" stroke="#f8f9fa" stroke-width="1" />
+<text x="552" y="96" font-size="16" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">uv sync</text>
+<text x="464" y="140" font-size="10" fill="#868e96">Reconciles environment</text>
+<text x="464" y="154" font-size="10" fill="#868e96">with uv.lock contents</text>
+
+<!-- Red arrow: uv sync removes foreign packages -->
+<path d="M 464 96 L 440 96" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-red)" />
+<text x="444" y="86" font-size="11" fill="#e03131" font-weight="600">removes</text>
+
+<!-- uv.lock contents box -->
+<rect x="464" y="172" width="216" height="84" rx="8" fill="#fff9db" stroke="#f59f00" stroke-width="1" />
+<text x="472" y="192" font-size="11" fill="#e67700" font-weight="600">uv.lock contains:</text>
+<text x="472" y="210" font-size="10" fill="#868e96">guardrails-ai==0.9.0</text>
+<text x="472" y="224" font-size="10" fill="#868e96">numpy==1.26.4</text>
+<text x="472" y="238" font-size="10" fill="#868e96">pydantic==2.10.0</text>
+<text x="472" y="252" font-size="10" fill="#e03131">(no hub validators)</text>
+
+<!-- Down arrow between containers -->
+<path d="M 252 256 L 252 296" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-red)" />
+
+<!-- Container 2: site-packages after uv sync -->
+<rect x="64" y="296" width="376" height="200" rx="8" fill="#ffe3e3" stroke="#e03131" stroke-width="1" />
+<text x="72" y="316" font-size="11" fill="#e03131">site-packages/ (after uv sync)</text>
+
+<!-- Inner box 2a: guardrails-ai still here -->
+<rect x="80" y="328" width="344" height="36" rx="8" fill="#228be6" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="346" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails-ai==0.9.0 (still here)</text>
+
+<!-- Inner box 2b: detect_pii GONE -->
+<rect x="80" y="376" width="344" height="36" rx="8" fill="#868e96" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="394" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails_grhub_detect_pii/ GONE</text>
+
+<!-- Inner box 2c: hub/__init__.py STALE -->
+<rect x="80" y="424" width="344" height="44" rx="8" fill="#e03131" stroke="#f8f9fa" stroke-width="1" />
+<text x="252" y="440" font-size="11" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">hub/__init__.py (STALE)</text>
+<text x="252" y="458" font-size="10" fill="#ffc9c9" text-anchor="middle" dominant-baseline="central">from guardrails_grhub_detect_pii import DetectPII</text>
+
+<!-- Down arrow to error -->
+<path d="M 252 496 L 252 528" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-red)" />
+
+<!-- Error box -->
+<rect x="64" y="528" width="560" height="48" rx="8" fill="#e03131" stroke="#f8f9fa" stroke-width="1" />
+<text x="344" y="552" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">import guardrails -&gt; ModuleNotFoundError</text>
+
+<!-- Fatal note -->
+<text x="64" y="600" font-size="11" fill="#e03131" font-weight="600">FATAL: Entire guardrails package becomes unimportable.</text>
 </svg>
