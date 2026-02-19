@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="632" height="646" viewBox="60 -4 632 646">
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><marker id="arrow-e03131" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#e03131" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="80" y="40" font-size="24" fill="#1971c2">Current Guardrails Hub Install Architecture</text>
+<rect x="80" y="64" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#1864ab" stroke-width="1" />
+<text x="280" y="88" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails hub install hub://guardrails/detect_pii</text>
+<path d="M 280 112 L 280 136" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="136" width="400" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="280" y="164" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">1. get_validator_id(package_uri)
+hub://guardrails/detect_pii -&gt; ('guardrails/detect_pii', ver)</text>
+<path d="M 280 192 L 280 216" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="216" width="296" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="228" y="244" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">2. get_validator_manifest(validator_id)
+GET hub.api.guardrailsai.com/.../manifest</text>
+<rect x="416" y="216" width="256" height="56" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
+<text x="544" y="244" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">get_site_packages_location()
+importlib.import_module('pip')</text>
+<path d="M 376 244 L 416 244" stroke="#e03131" fill="none" stroke-width="2" marker-end="url(#arrow-e03131)" />
+<path d="M 228 272 L 280 296" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="296" width="400" height="72" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
+<text x="280" y="332" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">3. install_hub_module(validator_id)
+pip install guardrails-grhub-detect-pii[validators]
+--index-url=pypi.guardrailsai.com/simple</text>
+<text x="504" y="314" font-size="10" fill="#868e96">Subprocess:
+sys.executable -m pip install</text>
+<path d="M 280 368 L 280 384" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="384" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="280" y="408" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">4. run_post_install(manifest, site_packages)
+subprocess: python post_install.py</text>
+<path d="M 280 432 L 280 456" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="456" width="400" height="72" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
+<text x="280" y="492" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">5. add_to_hub_inits(manifest, site_packages)
+MUTATES guardrails/hub/__init__.py in site-packages
+Appends: from guardrails_grhub_detect_pii import DetectPII</text>
+<text x="504" y="474" font-size="10" fill="#868e96">Direct file write into
+site-packages/guardrails/
+hub/__init__.py</text>
+<path d="M 280 528 L 280 544" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="544" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#40c057" stroke-width="1" />
+<text x="280" y="568" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">6. reload_module(import_path) -&gt; Validator ready</text>
+<rect x="504" y="544" width="168" height="48" rx="8" stroke="#f8f9fa" fill="#e03131" stroke-width="1" />
+<text x="588" y="568" font-size="11" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">Red = breaks with uv</text>
+<text x="80" y="618" font-size="10" fill="#868e96">Source: guardrails/hub/install.py, validator_package_service.py, cli/hub/utils.py</text>
+</svg>

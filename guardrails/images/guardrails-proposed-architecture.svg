@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="648" height="678" viewBox="44 -4 648 678">
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><marker id="arrow-087f5b" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#087f5b" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="64" y="40" font-size="24" fill="#1971c2">Proposed uv-Compatible Hub Install Architecture</text>
+<rect x="80" y="64" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#1864ab" stroke-width="1" />
+<text x="280" y="88" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails hub install hub://guardrails/detect_pii</text>
+<path d="M 280 112 L 280 136" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="136" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="280" y="160" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">1. get_validator_id(package_uri)
+hub://... -&gt; ('guardrails/detect_pii', ver)</text>
+<path d="M 280 184 L 280 208" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="208" width="288" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="224" y="236" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">2. get_validator_manifest(validator_id)
+GET hub.api.guardrailsai.com/.../manifest</text>
+<rect x="392" y="208" width="272" height="56" rx="8" stroke="#f8f9fa" fill="#087f5b" stroke-width="1" />
+<text x="528" y="236" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">get_site_packages_location() [FIXED]
+sysconfig.get_paths()['purelib']</text>
+<path d="M 368 236 L 392 236" stroke="#087f5b" fill="none" stroke-width="2" marker-end="url(#arrow-087f5b)" />
+<text x="400" y="278" font-size="10" fill="#868e96">Replaces importlib.import_module('pip')</text>
+<path d="M 224 264 L 280 288" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="288" width="400" height="72" rx="8" stroke="#f8f9fa" fill="#087f5b" stroke-width="1" />
+<text x="280" y="324" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">3. install_hub_module(validator_id) [FIXED]
+detect_installer() -&gt; uv pip install / pip install
+--extra-index-url=pypi.guardrailsai.com/simple</text>
+<text x="504" y="306" font-size="10" fill="#868e96">uv preferred: shutil.which('uv')
+Falls back to pip if unavailable</text>
+<path d="M 280 360 L 280 384" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="384" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="280" y="408" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">4. run_post_install(manifest, site_packages)
+subprocess: python post_install.py</text>
+<path d="M 280 432 L 280 456" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="456" width="400" height="72" rx="8" stroke="#f8f9fa" fill="#12b886" stroke-width="1" />
+<text x="280" y="492" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">5. register_validator(manifest) [NEW]
+Write to ~/.guardrails/hub_registry.json
++ Dynamic __getattr__ in guardrails/hub/__init__.py</text>
+<text x="504" y="474" font-size="10" fill="#868e96">Replaces add_to_hub_inits()
+No more site-packages mutation
+uv sync safe</text>
+<path d="M 280 528 L 280 552" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="80" y="552" width="400" height="48" rx="8" stroke="#f8f9fa" fill="#40c057" stroke-width="1" />
+<text x="280" y="576" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">6. reload_module(import_path) -&gt; Validator ready</text>
+<rect x="504" y="552" width="168" height="72" rx="8" stroke="#868e96" fill="#f8f9fa" stroke-width="1" />
+<text x="512" y="574" font-size="10" fill="#495057">Green = fixed/new (uv-safe)
+Blue = unchanged
+Indigo = unchanged (post-install)</text>
+<text x="80" y="650" font-size="10" fill="#868e96">Source: guardrails/hub/install.py, validator_package_service.py, cli/hub/utils.py</text>
+</svg>
