@@ -10,6 +10,7 @@ My technical design proposals for open source projects. These are personal contr
 | [UV Package Manager Support v1](mlflow/mlflow-uv-support-design-doc-v1.md) | MLflow | Superseded | [#12478](https://github.com/mlflow/mlflow/issues/12478) |
 | [uv Compatibility](guardrails/guardrails-uv-compatibility.md) | Guardrails AI | Agreed | [#1392](https://github.com/guardrails-ai/guardrails/issues/1392), [Discussion #1412](https://github.com/guardrails-ai/guardrails/discussions/1412) |
 | [Usage Tracker](instructor/usage-tracker-design-doc.md) | Instructor | Draft | [#2080](https://github.com/567-labs/instructor/issues/2080) |
+| [Online Evals](phoenix/phoenix-online-evals-design-doc.md) | Phoenix (Arize) | Draft | [#11642](https://github.com/Arize-ai/phoenix/issues/11642) |
 
 ## Structure
 
@@ -22,6 +23,9 @@ design-docs/
 │   ├── images/
 │   └── *.md
 ├── instructor/                # Instructor project designs
+│   └── *.md
+├── phoenix/                   # Phoenix (Arize) project designs
+│   ├── images/
 │   └── *.md
 └── README.md
 ```

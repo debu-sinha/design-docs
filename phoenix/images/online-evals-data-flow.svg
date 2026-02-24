@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="620" viewBox="240 8 520 620">
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="500" y="50" font-size="22" fill="#228be6" text-anchor="middle">Online Evals - Data Flow</text>
+<rect x="360" y="64" width="280" height="40" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="500" y="84" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">1. gRPC/REST span arrives</text>
+<path d="M 500 104 L 500 136" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="330" y="136" width="340" height="40" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="500" y="156" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">2. BulkInserter writes span + emits event</text>
+<path d="M 500 176 L 500 208" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="310" y="208" width="380" height="40" rx="8" stroke="#f8f9fa" fill="#5c7cfa" stroke-width="1" />
+<text x="500" y="228" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">3. DmlEventHandler dispatches SpanInsertEvent</text>
+<path d="M 500 248 L 500 280" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="310" y="280" width="380" height="40" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="500" y="300" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">4. OnlineEvalEventHandler enqueues project_id</text>
+<path d="M 500 320 L 500 352" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="300" y="352" width="400" height="40" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="500" y="372" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">5. Daemon wakes, fetches config + unevaluated spans</text>
+<path d="M 500 392 L 500 424" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="330" y="424" width="340" height="40" rx="8" stroke="#212529" fill="#fab005" stroke-width="1" />
+<text x="500" y="444" font-size="13" fill="#212529" text-anchor="middle" dominant-baseline="central">6. Evaluator runs (Code or LLM judge)</text>
+<path d="M 500 464 L 500 496" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="340" y="496" width="320" height="40" rx="8" stroke="#f8f9fa" fill="#087f5b" stroke-width="1" />
+<text x="500" y="516" font-size="13" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">7. SpanAnnotation written to database</text>
+<path d="M 500 536 L 500 568" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<rect x="340" y="568" width="320" height="40" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
+<text x="500" y="588" font-size="13" fill="#212529" text-anchor="middle" dominant-baseline="central">8. Cache invalidated, UI reflects score</text>
+</svg>

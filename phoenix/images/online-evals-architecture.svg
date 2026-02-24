@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="444" viewBox="20 8 920 444">
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<text x="510" y="50" font-size="22" fill="#228be6">Phoenix Online Evals - Architecture</text>
+<rect x="40" y="72" width="200" height="48" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
+<text x="140" y="96" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">gRPC/REST Span</text>
+<rect x="320" y="72" width="200" height="48" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="420" y="96" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">BulkInserter</text>
+<rect x="680" y="72" width="180" height="48" rx="8" stroke="#f8f9fa" fill="#087f5b" stroke-width="1" />
+<text x="770" y="96" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">spans table</text>
+<rect x="320" y="176" width="200" height="48" rx="8" stroke="#f8f9fa" fill="#5c7cfa" stroke-width="1" />
+<text x="420" y="200" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">SpanInsertEvent</text>
+<rect x="680" y="176" width="200" height="48" rx="8" stroke="#f8f9fa" fill="#3b5bdb" stroke-width="1" />
+<text x="780" y="200" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">DmlEventHandler</text>
+<rect x="40" y="280" width="240" height="48" rx="8" stroke="#f8f9fa" fill="#087f5b" stroke-width="1" />
+<text x="160" y="304" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">project_evaluators</text>
+<rect x="400" y="280" width="240" height="48" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="2" />
+<text x="520" y="304" font-size="15" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">OnlineEvalDaemon</text>
+<rect x="400" y="384" width="200" height="48" rx="8" stroke="#212529" fill="#fab005" stroke-width="1" />
+<text x="500" y="408" font-size="13" fill="#212529" text-anchor="middle" dominant-baseline="central">Evaluator (Code/LLM)</text>
+<rect x="720" y="384" width="200" height="48" rx="8" stroke="#212529" fill="#12b886" stroke-width="1" />
+<text x="820" y="408" font-size="14" fill="#212529" text-anchor="middle" dominant-baseline="central">SpanAnnotation</text>
+<path d="M 240 96 L 320 96" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<path d="M 520 96 L 680 96" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="560" y="87" font-size="11" fill="#868e96">writes</text>
+<path d="M 420 120 L 420 176" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="432" y="151" font-size="11" fill="#868e96">emits</text>
+<path d="M 520 200 L 680 200" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<path d="M 780 224 L 520 280" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="600" y="251" font-size="11" fill="#868e96">dispatches</text>
+<path d="M 280 304 L 400 304" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="306" y="295" font-size="11" fill="#868e96">config</text>
+<path d="M 520 328 L 520 384" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="532" y="359" font-size="11" fill="#868e96">runs</text>
+<path d="M 600 408 L 720 408" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
+<text x="632" y="399" font-size="11" fill="#868e96">writes</text>
+<text x="40" y="66" font-size="10" fill="#868e96">existing</text>
+<text x="320" y="66" font-size="10" fill="#868e96">existing</text>
+<text x="680" y="66" font-size="10" fill="#868e96">existing</text>
+<text x="320" y="170" font-size="10" fill="#868e96">existing</text>
+<text x="680" y="170" font-size="10" fill="#e8590c">extended</text>
+<text x="40" y="274" font-size="10" fill="#e8590c">new table</text>
+<text x="400" y="274" font-size="10" fill="#e8590c">new daemon</text>
+<text x="400" y="378" font-size="10" fill="#868e96">existing</text>
+<text x="720" y="378" font-size="10" fill="#868e96">existing model</text>
+</svg>
