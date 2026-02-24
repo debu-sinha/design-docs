@@ -6,7 +6,9 @@ My technical design proposals for open source projects. These are personal contr
 
 | Document | Project | Status | Issue |
 |----------|---------|--------|-------|
-| [UV Package Manager Support](mlflow/mlflow-uv-support-design-doc-v1.md) | MLflow | Draft | [#12478](https://github.com/mlflow/mlflow/issues/12478) |
+| [UV Package Manager Support v2](mlflow/uv-support-design-doc-v2.md) | MLflow | Implemented | [#12478](https://github.com/mlflow/mlflow/issues/12478), [PR #20344](https://github.com/mlflow/mlflow/pull/20344) |
+| [UV Package Manager Support v1](mlflow/mlflow-uv-support-design-doc-v1.md) | MLflow | Superseded | [#12478](https://github.com/mlflow/mlflow/issues/12478) |
+| [uv Compatibility](guardrails/guardrails-uv-compatibility.md) | Guardrails AI | Agreed | [#1392](https://github.com/guardrails-ai/guardrails/issues/1392), [Discussion #1412](https://github.com/guardrails-ai/guardrails/discussions/1412) |
 | [Usage Tracker](instructor/usage-tracker-design-doc.md) | Instructor | Draft | [#2080](https://github.com/567-labs/instructor/issues/2080) |
 
 ## Structure
@@ -16,10 +18,10 @@ design-docs/
 ├── mlflow/                    # MLflow project designs
 │   ├── images/
 │   └── *.md
-├── instructor/                # Instructor project designs
-│   └── *.md
-├── <project>/                 # Future project designs
+├── guardrails/                # Guardrails AI project designs
 │   ├── images/
+│   └── *.md
+├── instructor/                # Instructor project designs
 │   └── *.md
 └── README.md
 ```
