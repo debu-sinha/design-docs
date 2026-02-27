@@ -11,6 +11,7 @@ My technical design proposals for open source projects. These are personal contr
 | [uv Compatibility](guardrails/guardrails-uv-compatibility.md) | Guardrails AI | Agreed | [#1392](https://github.com/guardrails-ai/guardrails/issues/1392), [Discussion #1412](https://github.com/guardrails-ai/guardrails/discussions/1412) |
 | [Usage Tracker](instructor/usage-tracker-design-doc.md) | Instructor | Draft | [#2080](https://github.com/567-labs/instructor/issues/2080) |
 | [Online Evals](phoenix/phoenix-online-evals-design-doc.md) | Phoenix (Arize) | Draft | [#11642](https://github.com/Arize-ai/phoenix/issues/11642) |
+| [LLM Failover and Circuit Breaker](llamaindex/llm-failover-circuit-breaker.md) | LlamaIndex | Draft | [#19631](https://github.com/run-llama/llama_index/issues/19631) |
 
 ## Structure
 
@@ -25,6 +26,9 @@ design-docs/
 ├── instructor/                # Instructor project designs
 │   └── *.md
 ├── phoenix/                   # Phoenix (Arize) project designs
+│   ├── images/
+│   └── *.md
+├── llamaindex/                # LlamaIndex project designs
 │   ├── images/
 │   └── *.md
 └── README.md
