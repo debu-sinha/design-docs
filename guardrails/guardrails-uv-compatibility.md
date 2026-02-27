@@ -4,12 +4,18 @@
 | ---------------- | --------------------------------------------------------- |
 | **Author(s)**    | Debu Sinha ([@debu-sinha](https://github.com/debu-sinha)) |
 | **Organization** | Guardrails AI Community                                   |
-| **Status**       | PROPOSED                                                  |
+| **Status**       | IMPLEMENTED                                               |
 | **GitHub Issue** | [#1392](https://github.com/guardrails-ai/guardrails/issues/1392) |
-| **Pull Request** | TBD                                                       |
+| **Discussion**   | [#1412](https://github.com/guardrails-ai/guardrails/discussions/1412) |
+| **Pull Request** | [#1416](https://github.com/guardrails-ai/guardrails/pull/1416) (merged 2026-02-24) |
 
 **Change Log:**
 
+- 2026-02-20: Updated per discussion #1412 feedback from @CalebCourier
+  - Registry location changed from user-level (`~/.guardrails/`) to project-level (`.guardrails/` in project root)
+  - Renamed `hub repair` to `hub migrate` with explicit migration procedure
+  - Added 2-release sequencing requirement (migrate ships before `__init__.py` refactor)
+  - Removed automatic migration (CalebCourier: "not worth it since hub init file gets overwritten during upgrade")
 - 2026-02-19: Initial design version
 
 ---
@@ -24,9 +30,9 @@ This document proposes a phased fix addressing three root causes:
 
 - Replace `importlib.import_module('pip')` with `sysconfig.get_paths()['purelib']` for site-packages discovery
 - Add `uv pip install` as preferred installer with pip fallback via `shutil.which('uv')`
-- Replace the fragile `__init__.py` barrel file mutation with a JSON registry at `~/.guardrails/hub_registry.json` and a dynamic `__getattr__` loader in `guardrails/hub/__init__.py`
+- Replace the fragile `__init__.py` barrel file mutation with a project-level JSON registry at `.guardrails/hub_registry.json` and a dynamic `__getattr__` loader in `guardrails/hub/__init__.py`
 - Add `GUARDRAILS_INSTALLER` environment variable for explicit installer override
-- Add `guardrails hub repair` CLI command to rebuild the registry from installed packages
+- Add `guardrails hub migrate` CLI command to migrate existing installs to the registry format
 
 ---
 
@@ -140,14 +146,24 @@ The fundamental problem is a state desynchronization:
 | GUARDRAILS_INSTALLER env var | Proposed | Force `uv` or `pip` explicitly |
 | Graceful fallback | Proposed | If uv unavailable, use pip (no crash) |
 
-### Phase 2 (Registry Refactor) - Breaking Change
+### Phase 2 (Registry Refactor) - Breaking Change, 2-Release Sequence
+
+**Release A** (ships first):
 
 | Feature | Status | Description |
 | --- | --- | --- |
-| JSON validator registry | Proposed | `~/.guardrails/hub_registry.json` replaces `__init__.py` mutation |
-| Dynamic `__getattr__` | Proposed | `guardrails/hub/__init__.py` loads from registry at import time |
-| Safe import failure | Proposed | Missing validators log warning instead of crashing |
-| `guardrails hub repair` | Proposed | Rebuild registry from `importlib.metadata.distributions()` |
+| `guardrails hub migrate` | Agreed | Reads current barrel imports from `hub/__init__.py`, writes to project-level `.guardrails/hub_registry.json` |
+| Project-level registry | Agreed | `.guardrails/hub_registry.json` in project root (not user-level) |
+
+**Release B** (ships after Release A is available):
+
+| Feature | Status | Description |
+| --- | --- | --- |
+| Dynamic `__getattr__` | Agreed | `guardrails/hub/__init__.py` loads from project-level registry at import time |
+| Safe import failure | Agreed | Missing validators log warning instead of crashing |
+| Remove `add_to_hub_inits()` | Agreed | Stop mutating `__init__.py` in site-packages |
+
+**Sequencing rationale** (from @CalebCourier, discussion #1412): `guardrails hub migrate` must be released before the `hub/__init__.py` changes because the upgrade overwrites the init file, leaving no data for an automatic migration to act on. Users must run migrate while their current barrel file is still intact.
 
 ### Phase 3 (First-Class uv Integration) - Future
 
@@ -292,7 +308,7 @@ def install_hub_module(validator_id, ...):
 
 Replace the fragile `__init__.py` barrel file mutation with a JSON registry stored outside `site-packages`.
 
-**Registry location:** `~/.guardrails/hub_registry.json`
+**Registry location:** `.guardrails/hub_registry.json` (project-level, in project root)
 
 **Registry format:**
 ```json
@@ -315,12 +331,13 @@ Replace the fragile `__init__.py` barrel file mutation with a JSON registry stor
 }
 ```
 
-**Why `~/.guardrails/` instead of `site-packages`:**
+**Why project-level instead of user-level or `site-packages`:**
 
-- Survives `uv sync`, `pip install --force-reinstall`, and virtualenv recreation
-- User-scoped (follows XDG conventions on Linux, `~/` on macOS/Windows)
-- Already used by Guardrails for `.guardrailsrc` config file
-- Can be committed to version control (optional) for team consistency
+- **Different projects can have different validator sets** (@CalebCourier, discussion #1412): a user with multiple guardrails projects may use different validators in each
+- Survives `uv sync` -- `.guardrails/` is not a Python package, so uv does not touch it
+- `guardrails hub install` already runs from the project root, so the directory is predictable
+- Can be committed to version control for team consistency (optional)
+- Note: `guardrails hub install` must create `.guardrails/` if it does not exist
 
 ### 2.2 Replace `add_to_hub_inits()` with `register_validator()`
 
@@ -339,20 +356,23 @@ def add_to_hub_inits(manifest, site_packages):
 **Proposed replacement:**
 ```python
 import json
+import os
 from pathlib import Path
 from datetime import datetime, timezone
 
-_REGISTRY_DIR = Path.home() / ".guardrails"
-_REGISTRY_FILE = _REGISTRY_DIR / "hub_registry.json"
+def _get_registry_path():
+    """Return the project-level registry path."""
+    return Path(os.getcwd()) / ".guardrails" / "hub_registry.json"
 
 @staticmethod
 def register_validator(manifest):
-    """Register a validator in the JSON registry."""
-    _REGISTRY_DIR.mkdir(parents=True, exist_ok=True)
+    """Register a validator in the project-level JSON registry."""
+    registry_file = _get_registry_path()
+    registry_file.parent.mkdir(parents=True, exist_ok=True)
 
     registry = {"version": 1, "validators": {}}
-    if _REGISTRY_FILE.exists():
-        registry = json.loads(_REGISTRY_FILE.read_text())
+    if registry_file.exists():
+        registry = json.loads(registry_file.read_text())
 
     validator_id = manifest.id
     import_path = ValidatorPackageService.get_import_path_from_validator_id(
@@ -369,7 +389,7 @@ def register_validator(manifest):
         "package_name": package_name,
     }
 
-    _REGISTRY_FILE.write_text(json.dumps(registry, indent=2))
+    registry_file.write_text(json.dumps(registry, indent=2))
 ```
 
 ### 2.3 Dynamic `__getattr__` in `guardrails/hub/__init__.py`
@@ -389,17 +409,21 @@ import logging
 from pathlib import Path
 
 _logger = logging.getLogger(__name__)
-_REGISTRY_FILE = Path.home() / ".guardrails" / "hub_registry.json"
+
+def _get_registry_file():
+    """Return the project-level registry path."""
+    return Path.cwd() / ".guardrails" / "hub_registry.json"
 
 def _load_registry():
     """Load the validator registry, returning empty dict on any failure."""
-    if not _REGISTRY_FILE.exists():
+    registry_file = _get_registry_file()
+    if not registry_file.exists():
         return {}
     try:
-        data = json.loads(_REGISTRY_FILE.read_text())
+        data = json.loads(registry_file.read_text())
         return data.get("validators", {})
     except (json.JSONDecodeError, OSError):
-        _logger.warning("Failed to load hub registry at %s", _REGISTRY_FILE)
+        _logger.warning("Failed to load hub registry at %s", registry_file)
         return {}
 
 def _build_export_map():
@@ -448,51 +472,89 @@ def __getattr__(name):
 - Successful lookups are cached in module globals (same performance as static imports)
 - No `site-packages` mutation -- the `__init__.py` file is part of the guardrails source tree
 
-### 2.4 `guardrails hub repair` Command
+### 2.4 `guardrails hub migrate` Command
 
-Recovery command to rebuild the registry from actually-installed packages:
+Migration command that reads existing barrel imports from `hub/__init__.py` and writes them to the project-level registry. Ships in **Release A** (before the `__init__.py` refactor).
+
+**User-facing migration procedure** (from @CalebCourier, discussion #1412):
+
+```bash
+# Step 1: Upgrade guardrails to the version with hub migrate
+pip install -U guardrails-ai
+
+# Step 2: Re-run any hub install commands (to ensure packages are present)
+guardrails hub install hub://guardrails/detect_pii
+guardrails hub install hub://guardrails/toxic_language
+
+# Step 3: Run migrate to populate the project-level registry
+guardrails hub migrate
+```
+
+**Implementation:**
 
 ```python
-import importlib.metadata
+import ast
+import json
+import os
+import re
+import sysconfig
+from datetime import datetime, timezone
+from pathlib import Path
 
-def repair_registry():
-    """Scan installed packages and rebuild hub_registry.json."""
+def migrate_registry():
+    """Migrate barrel imports from hub/__init__.py to project-level registry.
+
+    Reads the current hub/__init__.py from site-packages, parses its import
+    statements, and writes them to .guardrails/hub_registry.json in the
+    project root.
+    """
+    site_packages = sysconfig.get_paths()["purelib"]
+    hub_init = Path(site_packages) / "guardrails" / "hub" / "__init__.py"
+
+    if not hub_init.exists():
+        print("No hub/__init__.py found in site-packages. Nothing to migrate.")
+        return
+
+    # Parse barrel imports: "from guardrails_grhub_detect_pii import DetectPII"
+    content = hub_init.read_text()
     registry = {"version": 1, "validators": {}}
 
-    for dist in importlib.metadata.distributions():
-        name = dist.metadata["Name"]
-        if name and name.startswith("guardrails-grhub-"):
-            # Reverse the naming convention:
-            # guardrails-grhub-detect-pii -> guardrails/detect_pii
-            suffix = name.replace("guardrails-grhub-", "")
-            validator_id = f"guardrails/{suffix.replace('-', '_')}"
-            import_path = name.replace("-", "_")
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
 
-            # Try to get exports from the module
-            exports = []
-            try:
-                module = importlib.import_module(import_path)
-                exports = getattr(module, "__validator_exports__", [])
-                if not exports:
-                    exports = [
-                        attr for attr in dir(module)
-                        if not attr.startswith("_")
-                        and hasattr(getattr(module, attr), "rail_alias")
-                    ]
-            except ImportError:
-                pass
+        match = re.match(
+            r"from\s+(guardrails_grhub_\w+)\s+import\s+(.+)", line
+        )
+        if match:
+            import_path = match.group(1)
+            exports = [e.strip() for e in match.group(2).split(",")]
 
-            if exports:
-                registry["validators"][validator_id] = {
-                    "import_path": import_path,
-                    "exports": exports,
-                    "package_name": name,
-                    "installed_at": datetime.now(timezone.utc).isoformat(),
-                }
+            # Reverse naming: guardrails_grhub_detect_pii -> guardrails/detect_pii
+            suffix = import_path.replace("guardrails_grhub_", "")
+            validator_id = f"guardrails/{suffix}"
+            package_name = import_path.replace("_", "-")
 
-    _REGISTRY_FILE.write_text(json.dumps(registry, indent=2))
+            registry["validators"][validator_id] = {
+                "import_path": import_path,
+                "exports": exports,
+                "installed_at": datetime.now(timezone.utc).isoformat(),
+                "package_name": package_name,
+            }
+
+    # Write to project-level registry
+    registry_dir = Path(os.getcwd()) / ".guardrails"
+    registry_dir.mkdir(parents=True, exist_ok=True)
+    registry_file = registry_dir / "hub_registry.json"
+    registry_file.write_text(json.dumps(registry, indent=2))
+
+    count = len(registry["validators"])
+    print(f"Migrated {count} validator(s) to {registry_file}")
     return registry
 ```
+
+**Why no automatic migration** (from @CalebCourier): "I don't think it's worth trying to include an automatic migration since the hub init file would be overwritten during the package upgrade anyway leaving no data for the migration to act on." Users must run `hub migrate` explicitly while their current barrel file is still intact, before upgrading to the version that ships the `__getattr__` refactor.
 
 ---
 
@@ -501,7 +563,7 @@ def repair_registry():
 | Variable | Default | Phase | Description |
 | --- | --- | --- | --- |
 | `GUARDRAILS_INSTALLER` | (auto-detect) | 1 | Force `uv` or `pip` as the installer |
-| `GUARDRAILS_HUB_REGISTRY` | `~/.guardrails/hub_registry.json` | 2 | Override registry file location |
+| `GUARDRAILS_HUB_REGISTRY` | `.guardrails/hub_registry.json` (project root) | 2 | Override registry file location |
 
 **Usage Examples:**
 
@@ -526,7 +588,7 @@ GUARDRAILS_HUB_REGISTRY=/shared/hub_registry.json guardrails hub install hub://g
 | pip not installed (uv-only env) | Crash: `ModuleNotFoundError: pip` | Use `sysconfig` for site-packages, `uv pip install` for packages |
 | `uv sync` removes validators | Crash: entire guardrails unimportable | Warning per missing validator, rest of guardrails works |
 | Corrupted registry JSON | N/A | Fallback to empty registry, log warning |
-| Stale registry entries | N/A | `ModuleNotFoundError` caught, warning logged, `hub repair` suggested |
+| Stale registry entries | N/A | `ModuleNotFoundError` caught, warning logged, `hub install` suggested |
 
 ---
 
@@ -537,15 +599,21 @@ GUARDRAILS_HUB_REGISTRY=/shared/hub_registry.json guardrails hub install hub://g
 - No user-visible changes (same CLI, same API)
 - Existing `__init__.py` barrel file still works (Phase 1 keeps it)
 
-### Phase 2 (Breaking)
-1. Ship new `guardrails/hub/__init__.py` with dynamic `__getattr__`
-2. On first run after upgrade, `guardrails hub install` writes to both old `__init__.py` AND new registry (dual-write transition period)
-3. After transition period (1 minor version), remove `add_to_hub_inits()` entirely
-4. Document migration: `guardrails hub repair` rebuilds registry from installed packages
+### Phase 2 (Breaking, 2-Release Sequence)
+
+**Release A** (ships first):
+1. Add `guardrails hub migrate` command that reads barrel imports from current `hub/__init__.py` and writes to `.guardrails/hub_registry.json`
+2. Document migration procedure: users must run `hub migrate` before upgrading to Release B
+
+**Release B** (ships after Release A is available):
+1. Ship new `guardrails/hub/__init__.py` with dynamic `__getattr__` that reads from project-level registry
+2. Remove `add_to_hub_inits()` entirely -- no more barrel file mutation
+3. `guardrails hub install` writes only to `.guardrails/hub_registry.json`
 
 ### Rollback
 - Phase 1: Revert `get_site_packages_location()` and `install_hub_module()` -- pure code changes, no state
-- Phase 2: Remove `hub_registry.json`, restore old `guardrails/hub/__init__.py` from `site-packages` backup
+- Phase 2 Release A: Remove `hub migrate` command -- no state changes if not run yet
+- Phase 2 Release B: Remove `.guardrails/hub_registry.json`, restore old `guardrails/hub/__init__.py` from prior version
 
 ---
 
@@ -569,7 +637,9 @@ GUARDRAILS_HUB_REGISTRY=/shared/hub_registry.json guardrails hub install hub://g
 - `test_hub_getattr_loads_validator`: Verify dynamic import via `__getattr__`
 - `test_hub_getattr_missing_validator_warns`: Verify warning instead of crash
 - `test_hub_getattr_caches_result`: Verify subsequent access uses globals cache
-- `test_hub_repair_rebuilds_from_installed`: Verify registry rebuild from metadata
+- `test_hub_migrate_reads_barrel_imports`: Verify migrate parses existing `__init__.py` imports
+- `test_hub_migrate_writes_project_registry`: Verify migrate creates `.guardrails/hub_registry.json`
+- `test_hub_migrate_no_init_file`: Verify migrate handles missing `__init__.py` gracefully
 - `test_hub_init_survives_uv_sync`: End-to-end test simulating uv sync removing packages
 
 ```bash
@@ -663,7 +733,8 @@ python -c "from guardrails.hub import DetectPII; print(DetectPII)"
 
 | Option | Chosen | Rationale |
 | --- | --- | --- |
-| JSON file at `~/.guardrails/` | Yes | Survives uv sync, simple, human-readable, no build-time dep |
+| Project-level JSON file at `.guardrails/` | Yes | Survives uv sync, per-project isolation, simple, human-readable |
+| User-level JSON file at `~/.guardrails/` | No | Different projects may need different validator sets (@CalebCourier) |
 | `importlib.metadata.entry_points` | No | Requires package metadata (removed by uv sync) |
 | SQLite database | No | Overkill, harder to debug/repair manually |
 | TOML file | No | Requires tomllib (3.11+) or tomli dependency |
@@ -676,12 +747,13 @@ python -c "from guardrails.hub import DetectPII; print(DetectPII)"
 | Silent skip (return None) | No | Hides bugs, confusing behavior |
 | Crash entire import (current) | No | Catastrophic, unrecoverable via CLI |
 
-### Decision 5: Dual-write transition vs hard cut
+### Decision 5: 2-release sequence vs dual-write vs hard cut
 
 | Option | Chosen | Rationale |
 | --- | --- | --- |
-| Dual-write for 1 minor version | Yes | Backwards compat, users on old guardrails still work |
-| Hard cut to registry-only | No | Breaks users who don't upgrade `guardrails/hub/__init__.py` |
+| 2-release sequence (migrate first, then refactor) | Yes | `hub migrate` ships before `__init__.py` changes; users migrate while barrel file still intact (@CalebCourier) |
+| Dual-write for 1 minor version | No | Package upgrade overwrites `hub/__init__.py`, leaving no data for automatic migration |
+| Hard cut to registry-only | No | Breaks users who haven't migrated |
 
 ---
 
@@ -695,17 +767,18 @@ Having implemented MLflow's uv support (PR #20344), several lessons directly app
 | Site-packages | N/A (uses uv export) | `sysconfig.get_paths()['purelib']` | Same stdlib approach, no pip dependency |
 | Env var override | `MLFLOW_LOG_UV_FILES` | `GUARDRAILS_INSTALLER` | Consistent pattern: env var for CI/CD control |
 | Fallback strategy | Warning + pip fallback | Warning + pip fallback | Never crash on missing tool |
-| Registry | N/A (uses requirements.txt) | JSON file at `~/.guardrails/` | Guardrails-specific: validator state outside site-packages |
+| Registry | N/A (uses requirements.txt) | Project-level JSON at `.guardrails/` | Guardrails-specific: validator state outside site-packages, per-project isolation |
 
 ---
 
 ## References
 
-1. **GitHub Issue:** [#1392 - Support uv package manager](https://github.com/guardrails-ai/guardrails/issues/1392)
-2. **MLflow uv Support PR:** [#20344 - Add UV package manager support](https://github.com/mlflow/mlflow/pull/20344)
-3. **MLflow uv Design Doc:** [uv-support-design-doc-v2.md](../mlflow/uv-support-design-doc-v2.md)
-4. **uv Documentation:** [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
-5. **uv pip interface:** [https://docs.astral.sh/uv/pip/](https://docs.astral.sh/uv/pip/)
-6. **Python sysconfig:** [https://docs.python.org/3/library/sysconfig.html](https://docs.python.org/3/library/sysconfig.html)
-7. **PEP 503 (Package naming):** [https://peps.python.org/pep-0503/](https://peps.python.org/pep-0503/)
-8. **Guardrails Hub Architecture:** `guardrails/hub/install.py`, `guardrails/hub/validator_package_service.py`, `guardrails/cli/hub/utils.py`
+1. **GitHub Discussion:** [#1412 - Guardrails Hub CLI: uv support + other qol improvements](https://github.com/guardrails-ai/guardrails/discussions/1412)
+2. **GitHub Issue:** [#1392 - Support uv package manager](https://github.com/guardrails-ai/guardrails/issues/1392)
+3. **MLflow uv Support PR:** [#20344 - Add UV package manager support](https://github.com/mlflow/mlflow/pull/20344)
+4. **MLflow uv Design Doc:** [uv-support-design-doc-v2.md](../mlflow/uv-support-design-doc-v2.md)
+5. **uv Documentation:** [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
+6. **uv pip interface:** [https://docs.astral.sh/uv/pip/](https://docs.astral.sh/uv/pip/)
+7. **Python sysconfig:** [https://docs.python.org/3/library/sysconfig.html](https://docs.python.org/3/library/sysconfig.html)
+8. **PEP 503 (Package naming):** [https://peps.python.org/pep-0503/](https://peps.python.org/pep-0503/)
+9. **Guardrails Hub Architecture:** `guardrails/hub/install.py`, `guardrails/hub/validator_package_service.py`, `guardrails/cli/hub/utils.py`

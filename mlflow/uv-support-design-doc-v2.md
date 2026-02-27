@@ -4,7 +4,7 @@
 | ------------------ | --------------------------------------------------------- |
 | **Author(s)**      | Debu Sinha ([@debu-sinha](https://github.com/debu-sinha)) |
 | **Organization**   | MLflow Community                                          |
-| **Status**         | IMPLEMENTED                                               |
+| **Status**         | IN REVIEW                                                 |
 | **GitHub Issue**   | [#12478](https://github.com/mlflow/mlflow/issues/12478)   |
 | **Pull Request**   | [#20344](https://github.com/mlflow/mlflow/pull/20344)     |
 

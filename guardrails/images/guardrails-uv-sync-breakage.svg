@@ -3,7 +3,7 @@
   <marker id="arrow-red" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
     <polygon points="0 0, 12 4.5, 0 9" fill="#e03131" />
   </marker>
-  <style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style>
+  <style>text { font-family: "DM Sans", "Segoe UI", system-ui, -apple-system, sans-serif; }</style>
 </defs>
 
 <!-- Title -->
@@ -18,7 +18,7 @@
 <text x="252" y="106" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails-ai==0.9.0</text>
 
 <!-- Inner box 1b: detect_pii package (green = foreign package) -->
-<rect x="80" y="136" width="344" height="36" rx="8" fill="#40c057" stroke="#40c057" stroke-width="1" />
+<rect x="80" y="136" width="344" height="36" rx="8" fill="#087f5b" stroke="#087f5b" stroke-width="1" />
 <text x="252" y="154" font-size="12" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">guardrails_grhub_detect_pii/</text>
 
 <!-- Inner box 1c: hub/__init__.py mutated -->

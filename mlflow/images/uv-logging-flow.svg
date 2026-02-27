@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="728" height="896" viewBox="-4 -20 728 896">
-<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><style>text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
+<defs><marker id="arrow-868e96" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#868e96" /></marker><style>text { font-family: "DM Sans", "Segoe UI", system-ui, -apple-system, sans-serif; }</style></defs>
 <text x="165" y="28" font-size="28" fill="#228be6">UV Model Logging Flow</text>
 <rect x="220" y="48" width="320" height="56" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
 <text x="380" y="76" font-size="16" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">save_model() / log_model()</text>
@@ -9,11 +9,11 @@
 <path d="M 390 208 L 390 240" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
 <polygon points="400,248 544,296 400,344 256,296" stroke="#343a40" fill="#fab005" stroke-width="1" />
 <text x="400" y="296" font-size="14" fill="#343a40" text-anchor="middle" dominant-baseline="central">UV enabled &amp; detected?</text>
-<text x="172" y="330" font-size="14" fill="#fa5252">No</text>
+<text x="172" y="330" font-size="14" fill="#e8590c" font-weight="600">No</text>
 <path d="M 256 296 L 120 384" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
 <rect x="16" y="392" width="208" height="48" rx="8" stroke="#f8f9fa" fill="#868e96" stroke-width="1" />
 <text x="120" y="416" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">pip-based inference</text>
-<text x="412" y="362" font-size="14" fill="#40c057">Yes</text>
+<text x="412" y="362" font-size="14" fill="#0ca678" font-weight="600">Yes</text>
 <path d="M 400 344 L 400 392" stroke="#868e96" fill="none" stroke-width="2" marker-end="url(#arrow-868e96)" />
 <rect x="252" y="400" width="296" height="48" rx="8" stroke="#f8f9fa" fill="#228be6" stroke-width="1" />
 <text x="400" y="424" font-size="14" fill="#f8f9fa" text-anchor="middle" dominant-baseline="central">export_uv_requirements()</text>

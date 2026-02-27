@@ -1,8 +1,8 @@
 # Instructor Usage Tracker: Built-in Usage Aggregation and Cost Estimation
 
 **Author:** Debu Sinha ([@debu-sinha](https://github.com/debu-sinha))
-**Status:** Draft
-**Related Issues:** [#2080](https://github.com/567-labs/instructor/issues/2080), [#1814](https://github.com/567-labs/instructor/issues/1814) (closed, partial)
+**Status:** Closed (issue #2080 completed by maintainers)
+**Related Issues:** [#2080](https://github.com/567-labs/instructor/issues/2080) (closed), [#1814](https://github.com/567-labs/instructor/issues/1814) (closed, partial)
 **Target:** `instructor` library
 
 ---
