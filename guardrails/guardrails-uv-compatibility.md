@@ -8,6 +8,7 @@
 | **GitHub Issue** | [#1392](https://github.com/guardrails-ai/guardrails/issues/1392) |
 | **Discussion**   | [#1412](https://github.com/guardrails-ai/guardrails/discussions/1412) |
 | **Pull Request** | [#1416](https://github.com/guardrails-ai/guardrails/pull/1416) (merged 2026-02-24) |
+| **Reviewers**    | [@CalebCourier](https://github.com/CalebCourier) (Caleb Courier, Guardrails AI Lead Maintainer) |
 
 **Change Log:**
 
