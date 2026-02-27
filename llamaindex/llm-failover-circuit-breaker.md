@@ -7,7 +7,7 @@
 | **Status**         | DRAFT                                  |
 | **GitHub Issue**   | [#19631](https://github.com/run-llama/llama_index/issues/19631) |
 | **Pull Request**   | TBD                                    |
-| **Reviewers**      | [@AstraBert](https://github.com/AstraBert) (Clelia Bertelli, LlamaIndex Maintainer), [@logan-markewich](https://github.com/logan-markewich) (Logan Markewich, LlamaIndex Lead Maintainer) |
+| **Target Reviewers** | [@AstraBert](https://github.com/AstraBert) (Clelia Bertelli, LlamaIndex Maintainer), [@logan-markewich](https://github.com/logan-markewich) (Logan Markewich, LlamaIndex Lead Maintainer) |
 
 **Change Log:**
 
